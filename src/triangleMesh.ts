@@ -1,24 +1,5 @@
-class Point {
-    x: number;
-    y: number;
-
-    constructor(x: number, y:number) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-class Triangle {
-    p1: Point;
-    p2: Point;
-    p3: Point;
-
-    constructor(p1: Point, p2: Point, p3: Point) {
-        this.p1 = p1;
-        this.p2 = p2;
-        this.p3 = p3;
-    }
-}
+import { Point } from "./point";
+import { Triangle } from "./triangle";
 
 class TriangleMesh {
     size: number;
@@ -47,7 +28,6 @@ class TriangleMesh {
             }
         }
     }
-
 }
 
 function drawTriangle(context: CanvasRenderingContext2D, triangle: Triangle){
