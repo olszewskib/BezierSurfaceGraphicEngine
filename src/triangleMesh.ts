@@ -1,39 +1,70 @@
-export function drawTriangle(context: CanvasRenderingContext2D, sliderValue: number, perecision: number){
-    // Define the coordinates for the triangle's vertices
-    console.log(sliderValue);
-    console.log(perecision);
+class Point {
+    x: number;
+    y: number;
 
-    let x1 = 0;
-    let y1 = 0;
-    let x2 = 0;
-    let y2 = perecision;
-    let x3 = perecision;
-    let y3 = perecision;
+    constructor(x: number, y:number) {
+        this.x = x;
+        this.y = y;
+    }
+}
 
-    // Set the triangle's stroke color
-    context.strokeStyle = "blue";
+class Triangle {
+    p1: Point;
+    p2: Point;
+    p3: Point;
 
-    for(let i=0; i<sliderValue; i++) {
-        for(let j=0; j<sliderValue; j++) {
+    constructor(p1: Point, p2: Point, p3: Point) {
+        this.p1 = p1;
+        this.p2 = p2;
+        this.p3 = p3;
+    }
+}
 
-            x1 = perecision * j;
-            y1 = perecision * i;
+class TriangleMesh {
+    size: number;
+    precision: number;
+    context: CanvasRenderingContext2D;
 
-            x2 = perecision * j;
-            y2 = perecision * i;
+    constructor(size: number, precision: number, context: CanvasRenderingContext2D) {
+        this.size = size;
+        this.precision = precision;
+        this.context = context;
+    }
 
-            x3 = perecision * j;
-            y3 = perecision * i;
+    render(): void {
+        this.context.clearRect(0,0,this.size,this.size);
+        var edgeLenght: number = this.size/this.precision;
 
-            context.beginPath();
-            context.moveTo(x1, y1);
-            context.lineTo(x2, y2);
-            context.lineTo(x3, y3);
-            context.closePath();
+        for(let i=0; i<this.precision; i++) {
+            for(let j=0; j<this.precision; j++) {
 
-            context.stroke();
-            //console.log(i);
-            //console.log(j);
+                var p1 = new Point(edgeLenght * j, edgeLenght * i);
+                var p2 = new Point(edgeLenght * j, edgeLenght * (i+1));
+                var p3 = new Point(edgeLenght * (j+1), edgeLenght * (i+1));
+
+                var t = new Triangle(p1,p2,p3);
+                drawTriangle(this.context,t);
+            }
         }
     }
+
+}
+
+function drawTriangle(context: CanvasRenderingContext2D, triangle: Triangle){
+
+    context.strokeStyle = "black";
+    context.beginPath();
+
+    context.moveTo(triangle.p1.x,triangle.p1.y);
+    context.lineTo(triangle.p2.x,triangle.p2.y);
+    context.lineTo(triangle.p3.x,triangle.p3.y);
+
+    context.closePath();
+    context.stroke();
+}
+
+export function drawTriangleMesh(context: CanvasRenderingContext2D, size: number, precision: number) {
+
+    var triangleMesh = new TriangleMesh(size,precision,context);
+    triangleMesh.render();
 }
