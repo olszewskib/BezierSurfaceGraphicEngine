@@ -5,3 +5,15 @@
   height: 1000;
   background-color: aliceblue;
 }
+
+.grid-container {
+  display: grid;
+  grid-template-columns: min-content min-content min-content min-content;
+}
+
+.grid-item {
+  padding: 10px;
+  font-size: 20px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+}
