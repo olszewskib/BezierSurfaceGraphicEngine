@@ -1,12 +1,10 @@
 import { BezierSurface } from "./BezierSurface";
 import { fragmentShaderSourceCode } from "./lib/fragmentShader";
 import { vertexShaderSourceCode } from "./lib/vertexShader";
-import { Triangle } from "./triangle";
+import { Triangle } from "./models/triangle";
 import { TriangleMesh } from "./triangleMesh";
+import { createStaticVertexBuffer, getProgram } from "./webGL";
 
-// elements 
-//const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
-//const ctx = canvas.getContext("2d");
 
 const slider = document.getElementById("precisionSlider") as HTMLInputElement;
 const sliderValue = document.getElementById("sliderValue");
@@ -15,9 +13,6 @@ const zSlider = document.getElementById("zSlider") as HTMLInputElement;
 const xIndex = document.getElementById("xIndexInput") as HTMLInputElement;
 const yIndex = document.getElementById("yIndexInput") as HTMLInputElement;
 
-// check for null
-//if(ctx == null)
-//  throw new Error("context not found");
 if(slider == null)
     throw new Error("slider not found");
 if(sliderValue == null)
@@ -25,14 +20,10 @@ if(sliderValue == null)
 if(zSlider == null)
     throw new Error("slider not found");
 
-// triangle mesth
-//var mesh = new TriangleMesh(ctx,canvas.width,parseInt(slider.value,10));
-//mesh.render();
-
 slider.addEventListener("input", function() {
     sliderValue.textContent = "Precision: " + slider.value;
     let precision = parseInt(slider.value,10);
-    helloTriangles(precision);
+    drawTriangles(precision);
 });
 
 // Bezier Surface 
@@ -50,63 +41,44 @@ zSlider.addEventListener("input", function() {
     
 })
 
-const triangleVertices = new Float32Array([-1.0,1.0,-1.0,0.0,0.0,0.0]);
+
+function getNormals(mesh: TriangleMesh) {
+
+    var normals: number[] = new Array();
+
+    mesh.triangles.forEach( triangle => {
+        if(!triangle.p1.normal || !triangle.p2.normal || !triangle.p3.normal) {
+            throw new Error("VertexNormalIsUndefined");
+        }
+
+        var p1 = triangle.p1.normal.getVec3ForBuffer();
+        normals.push(...p1)
+        var p2 = triangle.p2.normal.getVec3ForBuffer();
+        normals.push(...p2)
+        var p3 = triangle.p3.normal.getVec3ForBuffer();
+        normals.push(...p3)
+    })
+
+    var cpuBuffer: Float32Array = new Float32Array(normals);
+    return cpuBuffer;
+}
+
+const canvasSize: number = 1000;
+const defaultPrecision: number = 4;
+const mesh = new TriangleMesh(canvasSize,defaultPrecision);
+
+
+const triangelNormals = getNormals(mesh);
+const triangleVertices = new Float32Array([-1.0,1.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0]);
 const rgbTriangleColors = new Uint8Array([
     255, 0, 0,
     0, 255, 0,
     0, 0, 255,
 ]);
 
-function createStaticVertexBuffer(gl: WebGL2RenderingContext, data: ArrayBuffer) {
-    const buffer = gl.createBuffer();
-    if(!buffer) {
-        throw new Error('BufferCreationError');
-    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-    return buffer;
-}
-
-function getProgram(gl: WebGL2RenderingContext, vertexShaderSourceCode: string, fragmentShaderSourceCose: string) {
-
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    if(!vertexShader) return null;
-    gl.shaderSource(vertexShader, vertexShaderSourceCode);
-    gl.compileShader(vertexShader);
-    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-        const errorMessage = gl.getShaderInfoLog(vertexShader);
-        console.log(errorMessage);
-        return null;
-    }
-  
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    if(!fragmentShader) return null;
-    gl.shaderSource(fragmentShader, fragmentShaderSourceCode);
-    gl.compileShader(fragmentShader);
-    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-        const errorMessage = gl.getShaderInfoLog(fragmentShader);
-        console.log(errorMessage);
-        return null;
-    } 
-
-    const program = gl.createProgram();
-    if(!program) return null;
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const errorMessage = gl.getProgramInfoLog(program);
-        console.log(errorMessage);
-        return null;
-    }
-
-    return program;
-}
-
-function helloTriangles(precision: number) {
+function drawTriangles(precision: number) {
 
     // getting Canvas
     const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
@@ -121,25 +93,31 @@ function helloTriangles(precision: number) {
     }
 
     // creating a program
-    const helloTriangleProgram = getProgram(gl,vertexShaderSourceCode,fragmentShaderSourceCode);
-    if(!helloTriangleProgram) {
+    const drawTriangleProgram = getProgram(gl,vertexShaderSourceCode,fragmentShaderSourceCode);
+    if(!drawTriangleProgram) {
         throw new Error("getProgramError");
     }
+
+    
 
     // loading data to vertex buffers
     const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
     const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
+    const normalsBuffer = createStaticVertexBuffer(gl, triangelNormals)
+
 
     // Attribute locations
-    const vertexPositionAttributeLocation = gl.getAttribLocation(helloTriangleProgram, 'vertexPosition');
-    const vertexColorAttributeLocation = gl.getAttribLocation(helloTriangleProgram, 'vertexColor');
-    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0) return;
+    const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
+    const vertexColorAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexColor');
+    const vertexNormalAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexNormal');
+    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
 
     // Uniform locations
-    const shapeLocationUniform = gl.getUniformLocation(helloTriangleProgram, 'shapeLocation');
-    const shapeSizeUniform = gl.getUniformLocation(helloTriangleProgram, 'shapeSize');
-    const canvasSizeUniform = gl.getUniformLocation(helloTriangleProgram, 'canvasSize');
-    if(shapeLocationUniform === null || shapeSizeUniform === null || canvasSizeUniform === null) {
+    const shapeLocationUniform = gl.getUniformLocation(drawTriangleProgram, 'shapeLocation');
+    const shapeSizeUniform = gl.getUniformLocation(drawTriangleProgram, 'shapeSize');
+    const canvasSizeUniform = gl.getUniformLocation(drawTriangleProgram, 'canvasSize');
+    const reverseLightDirection = gl.getUniformLocation(drawTriangleProgram, 'reverseLightDirection');
+    if(shapeLocationUniform === null || shapeSizeUniform === null || canvasSizeUniform === null || reverseLightDirection === null) {
         console.log('Uniforms error');
         return;
     }   
@@ -153,22 +131,26 @@ function helloTriangles(precision: number) {
     // Rasterizer (which output pixels are covered by a triangle?)
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    gl.useProgram(helloTriangleProgram);
+    // attatch all needed attributes
+    gl.useProgram(drawTriangleProgram);
     gl.enableVertexAttribArray(vertexPositionAttributeLocation);
     gl.enableVertexAttribArray(vertexColorAttributeLocation);
+    gl.enableVertexAttribArray(vertexNormalAttributeLocation);
 
     // Input assembler (how to read vertex information from buffers?)
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
-    gl.vertexAttribPointer(
-        vertexPositionAttributeLocation,
-        2, gl.FLOAT, false, 0, 0);
-
-    gl.uniform2f(canvasSizeUniform, canvas.width, canvas.height);
+    gl.vertexAttribPointer(vertexPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
+    gl.vertexAttribPointer(vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
     gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer)
-    gl.vertexAttribPointer(
-        vertexColorAttributeLocation,
-        3, gl.UNSIGNED_BYTE, true, 0, 0);
+    gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    gl.uniform2f(canvasSizeUniform, canvas.width, canvas.height);
+
+    //gl.uniform3f(reverseLightDirection, 0.37,0.53,0.75);
+    gl.uniform3f(reverseLightDirection, 0,0,0.5);
 
     // draw a triangle
     var edgeLenght: number = canvas.width / precision;
@@ -183,4 +165,4 @@ function helloTriangles(precision: number) {
     }
 }
 
-helloTriangles(10);
+drawTriangles(4);

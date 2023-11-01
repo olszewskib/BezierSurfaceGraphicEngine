@@ -1,32 +1,38 @@
-import { Point } from "./point";
-import { Triangle } from "./triangle";
+import { Vec3 } from "./models/vec3";
+import { Vertex } from "./models/vertex";
+import { Triangle } from "./models/triangle";
 
 export class TriangleMesh {
     size: number;
     precision: number;
-    //context: CanvasRenderingContext2D;
     triangles: Triangle[];
 
-    constructor(size: number, precision: number ) {
+    constructor( size: number, precision: number ) {
         this.size = size;
         this.precision = precision;
         this.triangles = [];
+        this.construct();
     }
 
-    render(): void {
-        //this.context.clearRect(0,0,this.size,this.size);
+    construct(): void {
         var edgeLenght: number = this.size/this.precision;
 
         for(let i=0; i<this.precision; i++) {
             for(let j=0; j<this.precision; j++) {
 
-                var p1 = new Point(edgeLenght * j, edgeLenght * i);
-                var p2 = new Point(edgeLenght * j, edgeLenght * (i+1));
-                var p3 = new Point(edgeLenght * (j+1), edgeLenght * (i+1));
+                // Default z value is 0 and normal vector is [0,0,1] iow pointing up
+                
+                var p1 = new Vertex(edgeLenght * j, edgeLenght * i,0);
+                p1.setNormal(new Vec3(0,0,1));
+
+                var p2 = new Vertex(edgeLenght * j, edgeLenght * (i+1),0);
+                p2.setNormal(new Vec3(0,0,1));
+
+                var p3 = new Vertex(edgeLenght * (j+1), edgeLenght * (i+1),0);
+                p3.setNormal(new Vec3(0,0,1));
 
                 var t = new Triangle(p1,p2,p3);
                 this.triangles.push(t);
-                //drawTriangle(this.context,t);
             }
         }
     }
