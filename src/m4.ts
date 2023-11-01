@@ -4,9 +4,9 @@ export class M4 {
     
     constructor() {
         this.values = [];
-        for(var i:number =0; i <= this.degree; i++) {
+        for(var i:number =0; i < this.degree; i++) {
             this.values[i] = [];
-            for(var j:number = 0; j <= this.degree; j++) {
+            for(var j:number = 0; j < this.degree; j++) {
                 this.values[i][j] = 0;
             }
         }
@@ -130,6 +130,16 @@ export class M4 {
         result.values[3][1] = 1;
         result.values[3][3] = 1;
 
+        return result;
+    }
+
+    convert(): number[] {
+        var result = [];
+        for(var i:number =0; i < this.degree; i++) {
+            for(var j:number = 0; j < this.degree; j++) {
+                result.push(this.values[i][j]);
+            }
+        }
         return result;
     }
 }

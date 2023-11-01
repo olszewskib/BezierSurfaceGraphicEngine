@@ -1,6 +1,7 @@
 import { BezierSurface } from "./BezierSurface";
 import { fragmentShaderSourceCode } from "./lib/fragmentShader";
 import { vertexShaderSourceCode } from "./lib/vertexShader";
+import { M4 } from "./m4";
 import { Triangle } from "./models/triangle";
 import { TriangleMesh } from "./triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
@@ -69,7 +70,11 @@ const mesh = new TriangleMesh(canvasSize,defaultPrecision);
 
 
 const triangelNormals = getNormals(mesh);
-const triangleVertices = new Float32Array([-1.0,1.0,0.0,-1.0,0.0,0.0,0.0,0.0,0.0]);
+const triangleVertices = new Float32Array([
+    0,0,0,
+    0,500,0,
+    500,500,0
+]);
 const rgbTriangleColors = new Uint8Array([
     255, 0, 0,
     0, 255, 0,
@@ -113,11 +118,9 @@ function drawTriangles(precision: number) {
     if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
 
     // Uniform locations
-    const shapeLocationUniform = gl.getUniformLocation(drawTriangleProgram, 'shapeLocation');
-    const shapeSizeUniform = gl.getUniformLocation(drawTriangleProgram, 'shapeSize');
-    const canvasSizeUniform = gl.getUniformLocation(drawTriangleProgram, 'canvasSize');
+    const transformationMatrix = gl.getUniformLocation(drawTriangleProgram, 'matrix');
     const reverseLightDirection = gl.getUniformLocation(drawTriangleProgram, 'reverseLightDirection');
-    if(shapeLocationUniform === null || shapeSizeUniform === null || canvasSizeUniform === null || reverseLightDirection === null) {
+    if(reverseLightDirection === null) {
         console.log('Uniforms error');
         return;
     }   
@@ -147,22 +150,17 @@ function drawTriangles(precision: number) {
     gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer)
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-    gl.uniform2f(canvasSizeUniform, canvas.width, canvas.height);
 
     //gl.uniform3f(reverseLightDirection, 0.37,0.53,0.75);
     gl.uniform3f(reverseLightDirection, 0,0,0.5);
 
-    // draw a triangle
-    var edgeLenght: number = canvas.width / precision;
-    for(let i=0; i<=precision; i++) {
-        for(let j=0; j<=precision; j++) {
+    var mat4 = M4.project(canvas.clientWidth,canvas.clientHeight,400);
+    mat4 = M4.multiply(M4.scaling(1,1,1),mat4);
+    mat4 = M4.multiply(M4.translation(100,0,0),mat4);
+    gl.uniformMatrix4fv(transformationMatrix, false, mat4.convert());
 
-            gl.uniform1f(shapeSizeUniform,edgeLenght);
-            gl.uniform2f(shapeLocationUniform,edgeLenght*j,canvas.height - (i+1)*edgeLenght);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
-        }
 
-    }
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 drawTriangles(4);
