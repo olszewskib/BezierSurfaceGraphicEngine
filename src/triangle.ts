@@ -10,4 +10,15 @@ export class Triangle {
         this.p2 = p2;
         this.p3 = p3;
     }
+
+    getVertices(): number[] {
+        const arr = [];
+        arr.push(this.p1.x);
+        arr.push(this.p1.y);
+        arr.push(this.p2.x);
+        arr.push(this.p2.y);
+        arr.push(this.p3.x);
+        arr.push(this.p3.y);
+        return arr;
+    }
 }

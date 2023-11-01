@@ -1,19 +1,20 @@
 import { Point } from "./point";
 import { Triangle } from "./triangle";
 
-class TriangleMesh {
+export class TriangleMesh {
     size: number;
     precision: number;
-    context: CanvasRenderingContext2D;
+    //context: CanvasRenderingContext2D;
+    triangles: Triangle[];
 
-    constructor(size: number, precision: number, context: CanvasRenderingContext2D) {
+    constructor(size: number, precision: number ) {
         this.size = size;
         this.precision = precision;
-        this.context = context;
+        this.triangles = [];
     }
 
     render(): void {
-        this.context.clearRect(0,0,this.size,this.size);
+        //this.context.clearRect(0,0,this.size,this.size);
         var edgeLenght: number = this.size/this.precision;
 
         for(let i=0; i<this.precision; i++) {
@@ -24,7 +25,8 @@ class TriangleMesh {
                 var p3 = new Point(edgeLenght * (j+1), edgeLenght * (i+1));
 
                 var t = new Triangle(p1,p2,p3);
-                drawTriangle(this.context,t);
+                this.triangles.push(t);
+                //drawTriangle(this.context,t);
             }
         }
     }
@@ -41,10 +43,4 @@ function drawTriangle(context: CanvasRenderingContext2D, triangle: Triangle){
 
     context.closePath();
     context.stroke();
-}
-
-export function drawTriangleMesh(context: CanvasRenderingContext2D, size: number, precision: number) {
-
-    var triangleMesh = new TriangleMesh(size,precision,context);
-    triangleMesh.render();
 }
