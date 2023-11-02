@@ -1,3 +1,5 @@
+import { Vec3 } from "./models/vec3";
+
 export class M4 {
     readonly degree = 4;
     values: number[][];
@@ -129,6 +131,119 @@ export class M4 {
         result.values[3][0] = -1;
         result.values[3][1] = 1;
         result.values[3][3] = 1;
+
+        return result;
+    }
+
+    static pointAt(camera: Vec3, target: Vec3, upVec: Vec3 ): M4 {
+        var zAxis: Vec3 = Vec3.subtractVectors(camera,target);
+        zAxis.normalize();
+
+        var xAxis: Vec3 = Vec3.crossProduct(upVec,zAxis);
+        xAxis.normalize();
+
+        var yAxis: Vec3 = Vec3.crossProduct(zAxis,xAxis);
+        yAxis.normalize();
+
+        var result = new M4();
+
+        result.values[0][0] = xAxis.v1;
+        result.values[0][1] = xAxis.v2;
+        result.values[0][2] = xAxis.v3;
+        result.values[0][3] = 0;
+
+        result.values[1][0] = yAxis.v1;
+        result.values[1][1] = yAxis.v2;
+        result.values[1][2] = yAxis.v3;
+        result.values[1][3] = 0;
+
+        result.values[2][0] = zAxis.v1;
+        result.values[2][1] = zAxis.v2;
+        result.values[2][2] = zAxis.v3;
+        result.values[2][3] = 0;
+
+        result.values[3][0] = camera.v1;
+        result.values[3][1] = camera.v2;
+        result.values[3][2] = camera.v3;
+        result.values[3][3] = 1;
+
+        return result;
+    }
+
+    static perspective(fowRAD: number, aspect: number, zNear: number, zFar: number): M4 {
+        // aspect: clientWidth / clientHeight
+        var result = new M4();
+        var fow = Math.tan(Math.PI * 0.5 - 0.5 * fowRAD);
+        var range = 1.0 / (zNear - zFar);
+
+        result.values[0][0] = fow/aspect;
+        result.values[1][1] = fow;
+        result.values[2][2] = (zNear * zFar)*range;
+        result.values[2][3] = -1;
+        result.values[3][2] = zNear * zFar * range * 2;
+
+        return result;
+    }
+
+    inverse(): M4 {
+        // https://semath.info/src/inverse-cofactor-ex4.html
+
+        var adj = new M4();
+        var a = this.values;
+
+        adj.values[0][0] = a[1][1]*a[2][2]*a[3][3] + a[1][2]*a[2][3]*a[3][1] + a[1][3]*a[2][1]*a[3][2] - a[1][3]*a[2][2]*a[3][1] - a[1][2]*a[2][1]*a[3][3] - a[1][1]*a[2][3]*a[3][2];
+        adj.values[0][1] = - a[0][1]*a[2][2]*a[3][3] - a[0][2]*a[2][3]*a[3][1] - a[0][3]*a[2][1]*a[3][2] + a[0][3]*a[2][2]*a[3][1] + a[0][2]*a[2][1]*a[3][3] + a[0][1]*a[2][3]*a[3][2];
+        adj.values[0][2] = a[0][1]*a[1][2]*a[3][3] + a[0][2]*a[1][3]*a[3][1] + a[0][3]*a[1][1]*a[3][2] - a[0][3]*a[1][2]*a[3][1] - a[0][2]*a[1][1]*a[3][3] - a[0][1]*a[1][3]*a[3][2];
+        adj.values[0][3] = - a[0][1]*a[1][2]*a[2][3] - a[0][2]*a[1][3]*a[2][1] - a[0][3]*a[1][1]*a[2][2] + a[0][3]*a[1][2]*a[2][1] + a[0][2]*a[1][1]*a[2][3] + a[0][1]*a[1][3]*a[2][2];
+
+        adj.values[1][0] = - a[1][0]*a[2][2]*a[3][3] - a[1][2]*a[2][3]*a[3][0] - a[1][3]*a[2][0]*a[3][2] + a[1][3]*a[2][2]*a[3][0] + a[1][2]*a[2][0]*a[3][3] + a[1][0]*a[2][3]*a[3][2];
+        adj.values[1][1] = a[0][0]*a[2][2]*a[3][3] + a[0][2]*a[2][3]*a[3][0] + a[0][3]*a[2][0]*a[3][2] - a[0][3]*a[2][2]*a[3][0] - a[0][2]*a[2][0]*a[3][3] - a[0][0]*a[2][3]*a[3][2];
+        adj.values[1][2] = - a[0][0]*a[1][2]*a[3][3] - a[0][2]*a[1][3]*a[3][0] - a[0][3]*a[1][0]*a[3][2] + a[0][3]*a[1][2]*a[3][0] + a[0][2]*a[1][0]*a[3][3] + a[0][0]*a[1][3]*a[3][2];
+        adj.values[1][3] = a[0][0]*a[1][2]*a[2][3] + a[0][2]*a[1][3]*a[2][0] + a[0][3]*a[1][0]*a[2][2] - a[0][3]*a[1][2]*a[2][0] - a[0][2]*a[1][0]*a[2][3] - a[0][0]*a[1][3]*a[2][2];
+
+        adj.values[2][0] = a[1][0]*a[2][1]*a[3][3] + a[1][1]*a[2][3]*a[3][0] + a[1][3]*a[2][0]*a[3][1] - a[1][3]*a[2][1]*a[3][0] - a[1][1]*a[2][0]*a[3][3] - a[1][0]*a[2][3]*a[3][1];
+        adj.values[2][1] = - a[0][0]*a[2][1]*a[3][3] - a[0][1]*a[2][3]*a[3][0] - a[0][3]*a[2][0]*a[3][1] + a[0][3]*a[2][1]*a[3][0] + a[0][1]*a[2][0]*a[3][3] + a[0][0]*a[2][3]*a[3][1];
+        adj.values[2][2] = a[0][0]*a[1][1]*a[3][3] + a[0][1]*a[1][3]*a[3][0] + a[0][3]*a[1][0]*a[3][1] - a[0][3]*a[1][1]*a[3][0] - a[0][1]*a[1][0]*a[3][3] - a[0][0]*a[1][3]*a[3][1];
+        adj.values[2][3] = - a[0][0]*a[1][1]*a[2][3] - a[0][1]*a[1][3]*a[2][0] - a[0][3]*a[1][0]*a[2][1] + a[0][3]*a[1][1]*a[2][0] + a[0][1]*a[1][0]*a[2][3] + a[0][0]*a[1][3]*a[2][1];
+
+        adj.values[3][0] = - a[1][0]*a[2][1]*a[3][2] - a[1][1]*a[2][2]*a[3][0] - a[1][2]*a[2][0]*a[3][1] + a[1][2]*a[2][1]*a[3][0] + a[1][1]*a[2][0]*a[3][2] + a[1][0]*a[2][2]*a[3][1];
+        adj.values[3][1] = a[0][0]*a[2][1]*a[3][2] + a[0][1]*a[2][2]*a[3][0] + a[0][2]*a[2][0]*a[3][1] - a[0][2]*a[2][1]*a[3][0] - a[0][1]*a[2][0]*a[3][2] - a[0][0]*a[2][2]*a[3][1];
+        adj.values[3][2] = - a[0][0]*a[1][1]*a[3][2] - a[0][1]*a[1][2]*a[3][0] - a[0][2]*a[1][0]*a[3][1] + a[0][2]*a[1][1]*a[3][0] + a[0][1]*a[1][0]*a[3][2] + a[0][0]*a[1][2]*a[3][1];
+        adj.values[3][3] = a[0][0]*a[1][1]*a[2][2] + a[0][1]*a[1][2]*a[2][0] + a[0][2]*a[1][0]*a[2][1] - a[0][2]*a[1][1]*a[2][0] - a[0][1]*a[1][0]*a[2][2] - a[0][0]*a[1][2]*a[2][1];
+
+        var det = a[0][0] * adj.values[0][0] + a[1][0] * adj.values[0][1] + a[2][0] * adj.values[0][2] + a[3][0] * adj.values[0][3];
+
+        for(var i:number =0; i < this.degree; i++) {
+            for(var j:number = 0; j < this.degree; j++) {
+                adj.values[i][j] /= det;
+            }
+        }
+
+        return adj;
+    }
+
+    transpose(): M4 {
+        var result = new M4();
+
+        result.values[0][0] = this.values [0][0];
+        result.values[0][1] = this.values [1][0];
+        result.values[0][2] = this.values [2][0];
+        result.values[0][3] = this.values [3][0];
+
+        result.values[1][0] = this.values [0][1];
+        result.values[1][1] = this.values [1][1];
+        result.values[1][2] = this.values [2][1];
+        result.values[1][3] = this.values [3][1];
+
+        result.values[2][0] = this.values [0][2];
+        result.values[2][1] = this.values [1][2];
+        result.values[2][2] = this.values [2][2];
+        result.values[2][3] = this.values [3][2];
+
+        result.values[3][0] = this.values [0][3];
+        result.values[3][1] = this.values [1][3];
+        result.values[3][2] = this.values [2][3];
+        result.values[3][3] = this.values [3][3];
 
         return result;
     }

@@ -17,3 +17,13 @@
   text-align: center;
   border: 1px solid rgba(0, 0, 0, 0.8);
 }
+
+.centered-range {
+  display: flex;
+  align-items: center;
+}
+
+h2 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}

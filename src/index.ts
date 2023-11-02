@@ -2,7 +2,9 @@ import { BezierSurface } from "./BezierSurface";
 import { fragmentShaderSourceCode } from "./lib/fragmentShader";
 import { vertexShaderSourceCode } from "./lib/vertexShader";
 import { M4 } from "./m4";
+import { deg2rad } from "./models/angles";
 import { Triangle } from "./models/triangle";
+import { Vec3 } from "./models/vec3";
 import { TriangleMesh } from "./triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
@@ -24,7 +26,7 @@ if(zSlider == null)
 slider.addEventListener("input", function() {
     sliderValue.textContent = "Precision: " + slider.value;
     let precision = parseInt(slider.value,10);
-    drawTriangles(precision);
+    drawTriangles();
 });
 
 // Bezier Surface 
@@ -69,12 +71,13 @@ const defaultPrecision: number = 4;
 const mesh = new TriangleMesh(canvasSize,defaultPrecision);
 
 
-const triangelNormals = getNormals(mesh);
+const triangleNormals = getNormals(mesh);
 const triangleVertices = new Float32Array([
     0,0,0,
-    0,500,0,
-    500,500,0
+    100,0,0,
+    0,100,0
 ]);
+
 const rgbTriangleColors = new Uint8Array([
     255, 0, 0,
     0, 255, 0,
@@ -83,7 +86,7 @@ const rgbTriangleColors = new Uint8Array([
 
 
 
-function drawTriangles(precision: number) {
+function drawTriangles() {
 
     // getting Canvas
     const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
@@ -108,7 +111,7 @@ function drawTriangles(precision: number) {
     // loading data to vertex buffers
     const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
     const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
-    const normalsBuffer = createStaticVertexBuffer(gl, triangelNormals)
+    const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals)
 
 
     // Attribute locations
@@ -118,18 +121,19 @@ function drawTriangles(precision: number) {
     if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
 
     // Uniform locations
-    const transformationMatrix = gl.getUniformLocation(drawTriangleProgram, 'matrix');
     const reverseLightDirection = gl.getUniformLocation(drawTriangleProgram, 'reverseLightDirection');
-    if(reverseLightDirection === null) {
-        console.log('Uniforms error');
-        return;
-    }   
+    const worldViewProjectionLocation = gl.getUniformLocation(drawTriangleProgram, 'worldViewProjection');
+    const worldLocation = gl.getUniformLocation(drawTriangleProgram, 'world');
+    // need an error check
 
     // Output merger (how to apply an updated pixel to the output image)
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     gl.clearColor(0.08, 0.08, 0.08, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
     
     // Rasterizer (which output pixels are covered by a triangle?)
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -151,16 +155,41 @@ function drawTriangles(precision: number) {
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
 
-    //gl.uniform3f(reverseLightDirection, 0.37,0.53,0.75);
-    gl.uniform3f(reverseLightDirection, 0,0,0.5);
+    // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 
+    var projectionMatrix = M4.perspective(deg2rad(60),canvas.clientWidth/canvas.clientHeight,1,2000);
 
-    var mat4 = M4.project(canvas.clientWidth,canvas.clientHeight,400);
-    mat4 = M4.multiply(M4.scaling(1,1,1),mat4);
-    mat4 = M4.multiply(M4.translation(100,0,0),mat4);
-    gl.uniformMatrix4fv(transformationMatrix, false, mat4.convert());
+    // This matrix positions the camera in the world 
+    var cameraPosition: Vec3 = new Vec3(0,0,200); // location of the camera in the space
+    var targetPosition: Vec3 = new Vec3(0,0,0); // this dictates in which direction the camera is pointing
+    var upVector: Vec3 = new Vec3(0,1,0); // this set the "up" direction of the world;
+    var cameraMatrix = M4.pointAt(cameraPosition, targetPosition, upVector);
+    
+    // This matrix is responsible for moving object in the world in front of the camera, it is the inversion
+    // of camera matrix this way we can obtain static camera effect
+    var viewMatrix = cameraMatrix.inverse();
+    
+    // This matrix first moves the object in front of the camera <vievMatrix> and then clips it into space <projectionMatrix>
+    var viewProjectionMatrix = M4.multiply(viewMatrix,projectionMatrix);
+
+    // This matrix takes the vertices of the model and moved them to the world space, so basicly it determines where things are
+    var worldMatrix = M4.scaling(1,1,1);
+
+    // This matix first moves our obj <worldMatrix> then when it is set it moves it in front of the camera <viewMatix> and lastly clips it into space <projectionMatrix>
+    var worldViewProjectionMatrix = M4.multiply(worldMatrix,viewProjectionMatrix);
+
+    // Those matrices are responsible for validating normal vectors when scaling thie obj, possibly not needed
+    //var worldInvMatix = worldMatrix.inverse();
+    //var worldInvTransMatrix = worldInvMatix.transpose();
+
+    gl.uniformMatrix4fv(worldLocation, false, worldMatrix.convert());
+    gl.uniformMatrix4fv(worldViewProjectionLocation, false, worldViewProjectionMatrix.convert());
+    
+    var vec = new Vec3(0,0,1);
+    vec.normalize();
+    gl.uniform3fv(reverseLightDirection, [0,0,1]);
 
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-drawTriangles(4);
+drawTriangles();

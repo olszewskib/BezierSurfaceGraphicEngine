@@ -11,10 +11,38 @@
     <script type="module" src="/dist/index.js"></script>
     <canvas id="mainCanvas" width="1000" height="1000"></canvas>
     <br/>
-    <p>Modify BezierSurface: </p>
+
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <ul>
+              <h2>Precision</h2>
+              <li class="centered-range">
+                <input type="range" id="precisionSlider" min="1" max="100" step="1" value="6">
+              <li class="centered-range">
+                <p id="sliderValue"">Precision: 6</p>
+            </ul>
+          </td>
+          <td>
+            <ul>
+              <h2>Camera Movement</h2>
+              <li class="centered-range">
+                <h2>x:</h2>
+                <input type="range"></li>
+              <li class="centered-range">
+                <h2>y:</h2>
+                <input type="range"></li>
+              <li class="centered-range">
+                <h2 margin="0">z:</h2>
+                <input type="range"></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     <br/>
-    <input type="range" id="precisionSlider" min="1" max="100" step="1" value="6">
-    <p id="sliderValue"">Precision: 6</p>
+    <br/>
     <br/>
     <div class="grid-container">
       <div id="00"class="grid-item">0.0</div>
