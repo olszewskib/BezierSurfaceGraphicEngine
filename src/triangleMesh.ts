@@ -36,7 +36,7 @@ export class TriangleMesh {
                 var soY = swY;
                 // north east vertex
                 var neX = soX;
-                var neY = swY;
+                var neY = nwY;
 
                 var p1 = new Vertex(nwX, nwY, this.surface.P(nwX,nwY));
                 //p1.setNormal(new Vec3(0,0,1));
@@ -61,7 +61,7 @@ export class TriangleMesh {
                 //p5.setNormal(new Vec3(0,0,1));
                 p5.setNormal(Vec3.crossProduct(this.surface.dU(neX,neY),this.surface.dV(neX,neY)));
 
-                var p6 = new Vertex(soX, swY, this.surface.P(soX,swY));
+                var p6 = new Vertex(soX, soY, this.surface.P(soX,soY));
                 //p6.setNormal(new Vec3(0,0,1));
                 p6.setNormal(Vec3.crossProduct(this.surface.dU(soX,soY),this.surface.dV(soX,soY)));
 

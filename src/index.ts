@@ -106,6 +106,7 @@ const mesh = new TriangleMesh(precision,surface);
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var rgbTriangleColors = getColors(mesh);
+console.log(triangleVertices);
 
 function drawTriangles() {
 
