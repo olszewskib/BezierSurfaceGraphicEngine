@@ -6,7 +6,6 @@ export type Point3D = {
     z: number;
 };
 
-
 export class BezierSurface {
     readonly degree = 3;
     controlPoints: Point3D[][];

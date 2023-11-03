@@ -89,26 +89,6 @@ export function getNormals(mesh: TriangleMesh): Float32Array {
         normals.push(...p3)
     })
 
-    /*
-    for(let i:number = 0; i<mesh.triangles.length; i+=2) {
-        var triangle:Triangle = mesh.triangles[i];
-        var closer:Triangle = mesh.triangles[i+1];
-
-        if(!triangle.p1.normal || !triangle.p2.normal || !triangle.p3.normal || !closer.p3.normal) {
-            throw new Error("VertexNormalIsUndefined");
-        }
-
-        var p1 = triangle.p1.normal.getVec3ForBuffer();
-        normals.push(...p1)
-        var p2 = triangle.p2.normal.getVec3ForBuffer();
-        normals.push(...p2)
-        var p3 = triangle.p3.normal.getVec3ForBuffer();
-        normals.push(...p3)
-        var p4 = closer.p3.normal.getVec3ForBuffer();
-        normals.push(...p4);
-    }
-    */
-
     var cpuBuffer: Float32Array = new Float32Array(normals);
     return cpuBuffer;
 }
@@ -121,12 +101,10 @@ export function getColors(mesh: TriangleMesh): Uint8Array {
         colors.push(255,0,0);
         colors.push(0,255,0);
         colors.push(0,0,255);
-        //colors.push(100,100,100);
     }
 
     var cpuBuffer: Uint8Array = new Uint8Array(colors);
     return cpuBuffer;
-
 }
 
 export function getVertices(mesh: TriangleMesh): Float32Array {
@@ -146,35 +124,6 @@ export function getVertices(mesh: TriangleMesh): Float32Array {
         vertices.push(...p3)
     })
 
-    /*
-    for(let i:number = 0; i<mesh.triangles.length; i+=2) {
-        var triangle:Triangle = mesh.triangles[i];
-        var closer:Triangle = mesh.triangles[i+1];
-
-        var p1 = triangle.p1.getVec3ForBuffer();
-        vertices.push(...p1)
-        var p2 = triangle.p2.getVec3ForBuffer();
-        vertices.push(...p2)
-        var p3 = triangle.p3.getVec3ForBuffer();
-        vertices.push(...p3)
-        var p4 = closer.p3.getVec3ForBuffer();
-        vertices.push(...p4);
-    }
-    */
-
     var cpuBuffer: Float32Array = new Float32Array(vertices);
     return cpuBuffer;
-}
-
-function drawTriangle(context: CanvasRenderingContext2D, triangle: Triangle){
-
-    context.strokeStyle = "black";
-    context.beginPath();
-
-    context.moveTo(triangle.p1.x,triangle.p1.y);
-    context.lineTo(triangle.p2.x,triangle.p2.y);
-    context.lineTo(triangle.p3.x,triangle.p3.y);
-
-    context.closePath();
-    context.stroke();
 }
