@@ -38,4 +38,29 @@ export class BezierSurface {
         this.controlPoints[i][j].z = newZ;
     }
 
+    static B(t: number, i: number): number {
+        switch(i) {
+            case 0:
+                return (1-t) * (1-t) * (1-t);
+            case 1:
+                return 3 * (1-t) * (1-t) * t;
+            case 2:
+                return 3 * (1-t) * t * t;
+            case 3:
+                return t * t * t;
+            default:
+                return 0;
+        }
+    }
+
+    P(u: number, v: number): number {
+        var result:number = 0;
+
+        for(let i:number = 0; i<this.degree; i++) {
+            for(let j:number = 0; j<this.degree; j++) {
+                result += BezierSurface.B(u,i) * BezierSurface.B(v,j) * this.controlPoints[i][j].z;
+            }
+        }
+        return result;
+    }
 }
