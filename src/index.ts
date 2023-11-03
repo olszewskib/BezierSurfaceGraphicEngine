@@ -3,34 +3,30 @@ import { fragmentShaderSourceCode } from "./lib/fragmentShader";
 import { vertexShaderSourceCode } from "./lib/vertexShader";
 import { M4 } from "./m4";
 import { deg2rad } from "./models/angles";
-import { Triangle } from "./models/triangle";
 import { Vec3 } from "./models/vec3";
-import { TriangleMesh, getNormals, getVertices } from "./triangleMesh";
+import { TriangleMesh, getColors, getNormals, getVertices } from "./triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
-const slider = document.getElementById("precisionSlider") as HTMLInputElement;
+const precisionSlider = document.getElementById("precisionSlider") as HTMLInputElement;
 const sliderValue = document.getElementById("sliderValue");
 
 const zSlider = document.getElementById("zSlider") as HTMLInputElement;
 const xIndex = document.getElementById("xIndexInput") as HTMLInputElement;
 const yIndex = document.getElementById("yIndexInput") as HTMLInputElement;
 
-if(slider == null)
-    throw new Error("slider not found");
-if(sliderValue == null)
-    throw new Error("slider not found");
-if(zSlider == null)
+if(precisionSlider == null || sliderValue == null || zSlider == null)
     throw new Error("slider not found");
 
-slider.addEventListener("input", function() {
-    sliderValue.textContent = "Precision: " + slider.value;
-    let precision = parseInt(slider.value,10);
+precisionSlider.addEventListener("input", function() {
+    sliderValue.textContent = "Precision: " + precisionSlider.value;
+    let precision = parseInt(precisionSlider.value,10);
+    mesh.construct(precision);
+    triangleVertices = getVertices(mesh);
+    triangleNormals = getNormals(mesh);
+    rgbTriangleColors = getColors(mesh);
     drawTriangles();
 });
-
-// Bezier Surface 
-const surface = new BezierSurface();
 
 zSlider.addEventListener("input", function() {
 
@@ -44,38 +40,6 @@ zSlider.addEventListener("input", function() {
     
 })
 
-
-
-const canvasSize: number = 1000;
-const defaultPrecision: number = 4;
-const mesh = new TriangleMesh(canvasSize,defaultPrecision,surface);
-
-
-const triangleNormals = getNormals(mesh);
-//const triangleVertices = getVertices(mesh);
-//console.log(triangleVertices);
-
-
-const triangleVertices = new Float32Array([
-    0,0,100,
-    250,250,0,
-    0,250,0,
-    0,0,100,
-    -250,-250,0,
-    0,-250,0
-]);
-
-
-const rgbTriangleColors = new Uint8Array([
-    255, 0, 0,
-    0, 255, 0,
-    0, 0, 255,
-    255, 0, 0,
-    0, 255, 0,
-    0, 0, 255,
-]);
-
-
 const xCameraSlider = document.getElementById("xCamera") as HTMLInputElement;
 const yCameraSlider = document.getElementById("yCamera") as HTMLInputElement;
 const zCameraSlider = document.getElementById("zCamera") as HTMLInputElement;
@@ -83,8 +47,8 @@ if(xCameraSlider == null || yCameraSlider == null || zCameraSlider == null) {
     throw new Error("CameraSlidersError");
 }
 
-var xCamera: number = 0;
-var yCamera: number = 0;
+var xCamera: number = 500;
+var yCamera: number = 500;
 var zCamera: number = 200;
 
 xCameraSlider.addEventListener("input", function() {
@@ -107,8 +71,8 @@ if(xCameraDirectionSlider == null || yCameraDirectionSlider == null || zCameraDi
     throw new Error("CameraSlidersError");
 }
 
-var xCameraDirection: number = 0;
-var yCameraDirection: number = 0;
+var xCameraDirection: number = 500;
+var yCameraDirection: number = 500;
 var zCameraDirection: number = 0;
 
 xCameraDirectionSlider.addEventListener("input", function() {
@@ -123,6 +87,19 @@ zCameraDirectionSlider.addEventListener("input", function() {
     zCameraDirection = parseInt(zCameraDirectionSlider.value,10);
     drawTriangles();
 });
+
+// ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
+
+// Bezier Surface 
+const surface = new BezierSurface();
+
+// Triangle Mesh
+var precision: number = 10;
+const mesh = new TriangleMesh(precision,surface);
+
+var triangleVertices = getVertices(mesh);
+var triangleNormals = getNormals(mesh);
+var rgbTriangleColors = getColors(mesh);
 
 function drawTriangles() {
 
@@ -169,7 +146,7 @@ function drawTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
+    //gl.enable(gl.CULL_FACE);
     
     // Rasterizer (which output pixels are covered by a triangle?)
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -192,7 +169,7 @@ function drawTriangles() {
 
 
     // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 
-    var projectionMatrix = M4.perspective(deg2rad(60),canvas.clientWidth/canvas.clientHeight,1,2000);
+    var projectionMatrix = M4.perspective(deg2rad(120),canvas.clientWidth/canvas.clientHeight,1,2000);
 
     // This matrix positions the camera in the world 
     var cameraPosition: Vec3 = new Vec3(xCamera,yCamera,zCamera); // location of the camera in the space
@@ -208,7 +185,7 @@ function drawTriangles() {
     var viewProjectionMatrix = M4.multiply(viewMatrix,projectionMatrix);
 
     // This matrix takes the vertices of the model and moved them to the world space, so basicly it determines where things are
-    var worldMatrix = M4.scaling(1,1,1);
+    var worldMatrix = M4.scaling(1000,1000,1000);
 
     // This matix first moves our obj <worldMatrix> then when it is set it moves it in front of the camera <viewMatix> and lastly clips it into space <projectionMatrix>
     var worldViewProjectionMatrix = M4.multiply(worldMatrix,viewProjectionMatrix);
@@ -220,11 +197,11 @@ function drawTriangles() {
     gl.uniformMatrix4fv(worldLocation, false, worldMatrix.convert());
     gl.uniformMatrix4fv(worldViewProjectionLocation, false, worldViewProjectionMatrix.convert());
     
-    var vec = new Vec3(0.5,0.7,0.3);
+    var vec = new Vec3(0,0,1);
     vec.normalize();
     gl.uniform3fv(reverseLightDirection, vec.getVec3ForBuffer());
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.triangles.length * 3);
 }
 
 drawTriangles();
