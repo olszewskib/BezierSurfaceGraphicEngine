@@ -20,7 +20,7 @@ if(precisionSlider == null || sliderValue == null || zSlider == null)
 
 precisionSlider.addEventListener("input", function() {
     sliderValue.textContent = "Precision: " + precisionSlider.value;
-    let precision = parseInt(precisionSlider.value,10);
+    precision = parseInt(precisionSlider.value,10);
     mesh.construct(precision);
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
@@ -33,10 +33,16 @@ zSlider.addEventListener("input", function() {
     surface.setControlPointZValue(parseInt(xIndex.value,10),parseInt(yIndex.value,10),parseFloat(zSlider.value));
 
     var index = xIndex.value + yIndex.value;
+    console.log(index);
     const cell = document.getElementById(index);
     if(cell) {
         cell.textContent = zSlider.value;
     }
+    mesh.construct(precision);
+    triangleVertices = getVertices(mesh);
+    triangleNormals = getNormals(mesh);
+    rgbTriangleColors = getColors(mesh);
+    drawTriangles()
     
 })
 

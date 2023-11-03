@@ -39,13 +39,17 @@ export class TriangleMesh {
                 var tLow = new Triangle(p1,p2,p3);
                 this.triangles.push(tLow);
 
-                /*
-                var p4 = new Vertex(edgeLenght * (j+1), edgeLenght * i, this.surface.P(edgeLenght * (j+1), edgeLenght * i));
+                var p4 = new Vertex(edgeLenght * j, edgeLenght * i, this.surface.P(edgeLenght * j,edgeLenght * i));
                 p4.setNormal(new Vec3(0,0,1));
 
-                var tHigh = new Triangle(p1,p3,p4);
+                var p5 = new Vertex(edgeLenght * (j+1), edgeLenght * i, this.surface.P(edgeLenght * (j+1),edgeLenght * i));
+                p5.setNormal(new Vec3(0,0,1));
+
+                var p6 = new Vertex(edgeLenght * (j+1), edgeLenght * (i+1), this.surface.P(edgeLenght * (j+1),edgeLenght * (i+1)));
+                p6.setNormal(new Vec3(0,0,1));
+
+                var tHigh = new Triangle(p4,p5,p6);
                 this.triangles.push(tHigh);
-                */
             }
         }
     }

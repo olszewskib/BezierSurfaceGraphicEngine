@@ -30,10 +30,12 @@ export class BezierSurface {
     setControlPointZValue(i: number, j: number, newZ: number) {
 
         // message that you cant change conrner values
+        /*
         if(i == 0 && j == 0) return;
         if(i == 3 && j == 0) return;
         if(i == 0 && j == 3) return;
         if(i == 3 && j == 3) return;
+        */
 
         this.controlPoints[i][j].z = newZ;
     }
@@ -56,8 +58,8 @@ export class BezierSurface {
     P(u: number, v: number): number {
         var result:number = 0;
 
-        for(let i:number = 0; i<this.degree; i++) {
-            for(let j:number = 0; j<this.degree; j++) {
+        for(let i:number = 0; i<=this.degree; i++) {
+            for(let j:number = 0; j<=this.degree; j++) {
                 result += BezierSurface.B(u,i) * BezierSurface.B(v,j) * this.controlPoints[i][j].z;
             }
         }
