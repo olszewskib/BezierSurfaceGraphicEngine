@@ -1,4 +1,6 @@
-type Point3D = {
+import { Vec3 } from "./models/vec3";
+
+export type Point3D = {
     x: number;
     y: number;
     z: number;
@@ -28,15 +30,6 @@ export class BezierSurface {
     }
 
     setControlPointZValue(i: number, j: number, newZ: number) {
-
-        // message that you cant change conrner values
-        /*
-        if(i == 0 && j == 0) return;
-        if(i == 3 && j == 0) return;
-        if(i == 0 && j == 3) return;
-        if(i == 3 && j == 3) return;
-        */
-
         this.controlPoints[i][j].z = newZ;
     }
 
@@ -63,6 +56,64 @@ export class BezierSurface {
                 result += BezierSurface.B(u,i) * BezierSurface.B(v,j) * this.controlPoints[i][j].z;
             }
         }
+        return result;
+    }
+
+    static bezierCurve(points: Vec3[], t: number): Vec3 {
+        var result:Vec3 = new Vec3();
+        for(let i:number = 0; i<4; i++) {
+            result.add(Vec3.scale(points[i],BezierSurface.B(t,i)));
+        }
+        return result;   
+    }
+
+    dU(u: number, v:number): Vec3 {
+        var points: Vec3[] = [];
+        var curve: Vec3[] = [];
+
+        for(let i:number = 0; i<=this.degree; i++) {
+            var v0:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[0][i]);
+            var v1:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[1][i]);
+            var v2:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[2][i]);
+            var v3:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[3][i]);
+            points.push(v0,v1,v2,v3);
+
+            curve[i] = BezierSurface.bezierCurve(points,v);
+            points = [];
+        }
+
+        var result:Vec3 = new Vec3();
+
+        result.add(Vec3.scale(curve[0],-3 * (1 - u) * (1 - u)));
+        result.add(Vec3.scale(curve[1],3 * (1 - u) * (1 - u) - 6 * u * (1 - u)));
+        result.add(Vec3.scale(curve[2],6 * u * (1 - u) - 3 * u * u));
+        result.add(Vec3.scale(curve[3],3 * u * u));
+
+        return result;
+    }
+    
+    dV(u: number, v:number): Vec3 {
+        var points: Vec3[] = [];
+        var curve: Vec3[] = [];
+
+        for(let i:number = 0; i<=this.degree; i++) {
+            var v0:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[i][0]);
+            var v1:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[i][1]);
+            var v2:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[i][2]);
+            var v3:Vec3 = Vec3.convertFromPoint3D(this.controlPoints[i][3]);
+            points.push(v0,v1,v2,v3);
+
+            curve[i] = BezierSurface.bezierCurve(points,u);
+            points = [];
+        }
+
+        var result:Vec3 = new Vec3();
+
+        result.add(Vec3.scale(curve[0],-3 * (1 - v) * (1 - v)));
+        result.add(Vec3.scale(curve[1],3 * (1 - v) * (1 - v) - 6 * v * (1 - v)));
+        result.add(Vec3.scale(curve[2],6 * v * (1 - v) - 3 * v * v));
+        result.add(Vec3.scale(curve[3],3 * v * v));
+
         return result;
     }
 }

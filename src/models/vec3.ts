@@ -1,9 +1,11 @@
+import { Point3D } from "src/BezierSurface";
+
 export class Vec3 {
     v1: number;
     v2: number;
     v3: number;
 
-    constructor(v1:number, v2:number, v3:number) {
+    constructor(v1:number = 0, v2:number = 0, v3:number = 0) {
         this.v1 = v1;
         this.v2 = v2;
         this.v3 = v3;
@@ -38,6 +40,24 @@ export class Vec3 {
             this.v2 = 0;
             this.v3 = 0;
         }
+    }
+
+    static scale(v: Vec3, scalar: number): Vec3 {
+        return new Vec3(
+            v.v1*scalar,
+            v.v2*scalar,
+            v.v3*scalar
+        );
+    }
+
+    static convertFromPoint3D(point: Point3D): Vec3 {
+        return new Vec3(point.x,point.y,point.z);
+    }
+
+    add(v: Vec3): void {
+        this.v1 += v.v1;
+        this.v2 += v.v2;
+        this.v3 += v.v3;
     }
 
     lenght(): number {
