@@ -39,31 +39,31 @@ export class TriangleMesh {
                 var neY = nwY;
 
                 var p1 = new Vertex(nwX, nwY, this.surface.P(nwX,nwY));
-                //p1.setNormal(new Vec3(0,0,1));
                 p1.setNormal(Vec3.crossProduct(this.surface.dU(nwX,nwY),this.surface.dV(nwX,nwY)));
+                p1.normal?.normalize();
 
                 var p2 = new Vertex(swX, swY, this.surface.P(swX,swY));
-                //p2.setNormal(new Vec3(0,0,1));
                 p2.setNormal(Vec3.crossProduct(this.surface.dU(swX,swY),this.surface.dV(swX,swY)));
+                p2.normal?.normalize();
 
                 var p3 = new Vertex(soX, soY, this.surface.P(soX,soY));
-                //p3.setNormal(new Vec3(0,0,1));
                 p3.setNormal(Vec3.crossProduct(this.surface.dU(soX,soY),this.surface.dV(soX,soY)));
+                p3.normal?.normalize();
 
                 var tLow = new Triangle(p1,p2,p3);
                 this.triangles.push(tLow);
 
                 var p4 = new Vertex(nwX, nwY, this.surface.P(nwX,nwY));
-                //p4.setNormal(new Vec3(0,0,1));
                 p4.setNormal(Vec3.crossProduct(this.surface.dU(nwX,nwY),this.surface.dV(nwX,nwY)));
+                p4.normal?.normalize();
 
                 var p5 = new Vertex(neX, neY, this.surface.P(neX,neY));
-                //p5.setNormal(new Vec3(0,0,1));
                 p5.setNormal(Vec3.crossProduct(this.surface.dU(neX,neY),this.surface.dV(neX,neY)));
+                p5.normal?.normalize();
 
                 var p6 = new Vertex(soX, soY, this.surface.P(soX,soY));
-                //p6.setNormal(new Vec3(0,0,1));
                 p6.setNormal(Vec3.crossProduct(this.surface.dU(soX,soY),this.surface.dV(soX,soY)));
+                p6.normal?.normalize();
 
                 var tHigh = new Triangle(p4,p5,p6);
                 this.triangles.push(tHigh);
