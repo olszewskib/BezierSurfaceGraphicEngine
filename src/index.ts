@@ -9,17 +9,15 @@ import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
 const precisionSlider = document.getElementById("precisionSlider") as HTMLInputElement;
-const sliderValue = document.getElementById("sliderValue");
 
 const zSlider = document.getElementById("zSlider") as HTMLInputElement;
 const xIndex = document.getElementById("xIndexInput") as HTMLInputElement;
 const yIndex = document.getElementById("yIndexInput") as HTMLInputElement;
 
-if(precisionSlider == null || sliderValue == null || zSlider == null)
+if(precisionSlider == null || zSlider == null)
     throw new Error("slider not found");
 
 precisionSlider.addEventListener("input", function() {
-    sliderValue.textContent = "Precision: " + precisionSlider.value;
     precision = parseInt(precisionSlider.value,10);
     mesh.construct(precision);
     triangleVertices = getVertices(mesh);
@@ -94,6 +92,54 @@ zCameraDirectionSlider.addEventListener("input", function() {
     drawTriangles();
 });
 
+const xLightLocationSlider = document.getElementById("xLightLocation") as HTMLInputElement;
+const yLightLocationSlider = document.getElementById("yLightLocation") as HTMLInputElement;
+const zLightLocationSlider = document.getElementById("zLightLocation") as HTMLInputElement;
+if(xLightLocationSlider == null || yLightLocationSlider == null || zLightLocationSlider == null) {
+    throw new Error("CameraSlidersError");
+}
+
+var xLightLocation: number = 100;
+var yLightLocation: number = 200;
+var zLightLocation: number = 300;
+
+xLightLocationSlider.addEventListener("input", function() {
+    xLightLocation = parseInt(xLightLocationSlider.value,10);
+    drawTriangles();
+});
+yLightLocationSlider.addEventListener("input", function() {
+    yLightLocation = parseInt(yLightLocationSlider.value,10);
+    drawTriangles();
+});
+zLightLocationSlider.addEventListener("input", function() {
+    zLightLocation = parseInt(zLightLocationSlider.value,10);
+    drawTriangles();
+});
+
+const mirrorSlider = document.getElementById("mirror") as HTMLInputElement;
+if(mirrorSlider == null) {
+    throw new Error("mirror error");
+}
+
+var mirror: number = 150;
+
+mirrorSlider.addEventListener("input", function() {
+    mirror = parseInt(mirrorSlider.value,10);
+    drawTriangles();
+})
+
+const lightColorPicker = document.getElementById("lightColor") as HTMLInputElement;
+if(lightColorPicker == null) {
+    throw new Error("lightcolorpicker");
+}
+
+var lightColorVector: Vec3 = Vec3.convertFromHEX(lightColorPicker.value,true);
+
+lightColorPicker.addEventListener("input", function() {
+    lightColorVector = Vec3.convertFromHEX(lightColorPicker.value,true);
+    drawTriangles();
+})
+
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
 
 // Bezier Surface 
@@ -106,7 +152,6 @@ const mesh = new TriangleMesh(precision,surface);
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var rgbTriangleColors = getColors(mesh);
-console.log(triangleVertices);
 
 function drawTriangles() {
 
@@ -141,9 +186,12 @@ function drawTriangles() {
     if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
 
     // Uniform locations
-    const reverseLightDirection = gl.getUniformLocation(drawTriangleProgram, 'reverseLightDirection');
     const worldViewProjectionLocation = gl.getUniformLocation(drawTriangleProgram, 'worldViewProjection');
     const worldLocation = gl.getUniformLocation(drawTriangleProgram, 'world');
+    const lightPositionLocation = gl.getUniformLocation(drawTriangleProgram, 'lightPosition');
+    const eyePositionLocation = gl.getUniformLocation(drawTriangleProgram, 'eyePosition');
+    const mirrorLocation = gl.getUniformLocation(drawTriangleProgram, 'mirror');
+    const lightColorLocation = gl.getUniformLocation(drawTriangleProgram, 'lightColor');
     // need an error check
 
     // Output merger (how to apply an updated pixel to the output image)
@@ -204,9 +252,10 @@ function drawTriangles() {
     gl.uniformMatrix4fv(worldLocation, false, worldMatrix.convert());
     gl.uniformMatrix4fv(worldViewProjectionLocation, false, worldViewProjectionMatrix.convert());
     
-    var vec = new Vec3(0,0,1);
-    vec.normalize();
-    gl.uniform3fv(reverseLightDirection, vec.getVec3ForBuffer());
+    gl.uniform3fv(lightPositionLocation,[xLightLocation,yLightLocation,zLightLocation]);
+    gl.uniform3fv(eyePositionLocation,cameraPosition.getVec3ForBuffer());
+    gl.uniform1f(mirrorLocation,mirror)
+    gl.uniform3fv(lightColorLocation,lightColorVector.getVec3ForBuffer());
 
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangles.length * 3);
 }

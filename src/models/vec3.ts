@@ -54,6 +54,22 @@ export class Vec3 {
         return new Vec3(point.x,point.y,point.z);
     }
 
+    static convertFromHEX(hex: string, normalize: boolean = false) {
+        var r:number = parseInt(hex.slice(1,3),16);
+        var g:number = parseInt(hex.slice(3,5),16);
+        var b:number = parseInt(hex.slice(5,7),16);
+
+        var result:Vec3 = new Vec3(r,g,b);
+
+        if(normalize) {
+            result.v1 /= 255;
+            result.v2 /= 255;
+            result.v3 /= 255;
+        }
+
+        return result;
+    }
+
     add(v: Vec3): void {
         this.v1 += v.v1;
         this.v2 += v.v2;
