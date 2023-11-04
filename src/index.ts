@@ -51,9 +51,9 @@ if(xCameraSlider == null || yCameraSlider == null || zCameraSlider == null) {
     throw new Error("CameraSlidersError");
 }
 
-var xCamera: number = 500;
-var yCamera: number = 500;
-var zCamera: number = 500;
+var xCamera: number = parseInt(xCameraSlider.value,10);
+var yCamera: number = parseInt(yCameraSlider.value,10);
+var zCamera: number = parseInt(zCameraSlider.value,10);
 
 xCameraSlider.addEventListener("input", function() {
     xCamera = parseInt(xCameraSlider.value,10);
@@ -75,9 +75,9 @@ if(xCameraDirectionSlider == null || yCameraDirectionSlider == null || zCameraDi
     throw new Error("CameraSlidersError");
 }
 
-var xCameraDirection: number = 500;
-var yCameraDirection: number = 500;
-var zCameraDirection: number = 0;
+var xCameraDirection: number = parseInt(xCameraDirectionSlider.value,10);
+var yCameraDirection: number = parseInt(yCameraDirectionSlider.value,10);
+var zCameraDirection: number = parseInt(zCameraDirectionSlider.value,10);
 
 xCameraDirectionSlider.addEventListener("input", function() {
     xCameraDirection = parseInt(xCameraDirectionSlider.value,10);
@@ -99,9 +99,9 @@ if(xLightLocationSlider == null || yLightLocationSlider == null || zLightLocatio
     throw new Error("CameraSlidersError");
 }
 
-var xLightLocation: number = 500;
-var yLightLocation: number = 800;
-var zLightLocation: number = 100;
+var xLightLocation: number = parseInt(xLightLocationSlider.value,10);
+var yLightLocation: number = parseInt(yLightLocationSlider.value,10);
+var zLightLocation: number = parseInt(zLightLocationSlider.value,10);
 
 xLightLocationSlider.addEventListener("input", function() {
     lightLocation.v1 = parseInt(xLightLocationSlider.value,10);
@@ -116,18 +116,32 @@ zLightLocationSlider.addEventListener("input", function() {
     drawTriangles();
 });
 
+// Mods UI
+var kdSlider = document.getElementById("Kd") as HTMLInputElement;
+var ksSlider = document.getElementById("Ks") as HTMLInputElement;
 const mirrorSlider = document.getElementById("mirror") as HTMLInputElement;
-if(mirrorSlider == null) {
-    throw new Error("mirror error");
+if(ksSlider == null || kdSlider == null || mirrorSlider == null) {
+    throw new Error("k(d/s)error");   
 }
 
-var mirror: number = 150;
+var kd = parseFloat(kdSlider.value);
+var ks = parseFloat(ksSlider.value);
+var mirror: number = parseInt(mirrorSlider.value,10);
 
+kdSlider.addEventListener("input", function() {
+    kd = parseFloat(kdSlider.value);
+    drawTriangles();
+})
+ksSlider.addEventListener("input", function() {
+    ks = parseFloat(ksSlider.value);
+    drawTriangles();
+})
 mirrorSlider.addEventListener("input", function() {
     mirror = parseInt(mirrorSlider.value,10);
     drawTriangles();
 })
 
+// Colors UI
 const lightColorPicker = document.getElementById("lightColor") as HTMLInputElement;
 if(lightColorPicker == null) {
     throw new Error("lightcolorpicker");
@@ -140,30 +154,7 @@ lightColorPicker.addEventListener("input", function() {
     drawTriangles();
 })
 
-var kdSlider = document.getElementById("Kd") as HTMLInputElement;
-if(kdSlider == null) {
-    throw new Error("kderror");   
-}
 
-var kd = parseFloat(kdSlider.value);
-
-kdSlider.addEventListener("input", function() {
-    kd = parseFloat(kdSlider.value);
-    drawTriangles();
-})
-
-
-var ksSlider = document.getElementById("Ks") as HTMLInputElement;
-if(ksSlider == null) {
-    throw new Error("kderror");   
-}
-
-var ks = parseFloat(ksSlider.value);
-
-ksSlider.addEventListener("input", function() {
-    ks = parseFloat(ksSlider.value);
-    drawTriangles();
-})
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
 
 // Bezier Surface 
