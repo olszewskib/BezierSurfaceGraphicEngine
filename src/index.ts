@@ -44,6 +44,7 @@ zSlider.addEventListener("input", function() {
     
 })
 
+//Camera position UI
 const xCameraSlider = document.getElementById("xCamera") as HTMLInputElement;
 const yCameraSlider = document.getElementById("yCamera") as HTMLInputElement;
 const zCameraSlider = document.getElementById("zCamera") as HTMLInputElement;
@@ -68,6 +69,7 @@ zCameraSlider.addEventListener("input", function() {
     drawTriangles();
 });
 
+//Camera direction UI
 const xCameraDirectionSlider = document.getElementById("xCameraDirection") as HTMLInputElement;
 const yCameraDirectionSlider = document.getElementById("yCameraDirection") as HTMLInputElement;
 const zCameraDirectionSlider = document.getElementById("zCameraDirection") as HTMLInputElement;
@@ -92,6 +94,7 @@ zCameraDirectionSlider.addEventListener("input", function() {
     drawTriangles();
 });
 
+// Light location UI
 const xLightLocationSlider = document.getElementById("xLightLocation") as HTMLInputElement;
 const yLightLocationSlider = document.getElementById("yLightLocation") as HTMLInputElement;
 const zLightLocationSlider = document.getElementById("zLightLocation") as HTMLInputElement;
@@ -153,7 +156,6 @@ lightColorPicker.addEventListener("input", function() {
     lightColorVector = Vec3.convertFromHEX(lightColorPicker.value,true);
     drawTriangles();
 })
-
 
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
 
