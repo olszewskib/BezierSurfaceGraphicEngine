@@ -1,10 +1,10 @@
-import { BezierSurface } from "./BezierSurface";
+import { BezierSurface } from "./models/BezierSurface";
 import { fragmentShaderSourceCode } from "./lib/fragmentShader";
 import { vertexShaderSourceCode } from "./lib/vertexShader";
-import { M4 } from "./m4";
+import { M4 } from "./models/m4";
 import { deg2rad } from "./models/angles";
 import { Vec3 } from "./models/vec3";
-import { TriangleMesh, getColors, getNormals, getVertices } from "./triangleMesh";
+import { TriangleMesh, getColors, getNormals, getVertices } from "./models/triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
@@ -53,7 +53,7 @@ if(xCameraSlider == null || yCameraSlider == null || zCameraSlider == null) {
 
 var xCamera: number = 500;
 var yCamera: number = 500;
-var zCamera: number = 200;
+var zCamera: number = 500;
 
 xCameraSlider.addEventListener("input", function() {
     xCamera = parseInt(xCameraSlider.value,10);
@@ -99,20 +99,20 @@ if(xLightLocationSlider == null || yLightLocationSlider == null || zLightLocatio
     throw new Error("CameraSlidersError");
 }
 
-var xLightLocation: number = 100;
-var yLightLocation: number = 200;
-var zLightLocation: number = 300;
+var xLightLocation: number = 500;
+var yLightLocation: number = 800;
+var zLightLocation: number = 100;
 
 xLightLocationSlider.addEventListener("input", function() {
-    xLightLocation = parseInt(xLightLocationSlider.value,10);
+    lightLocation.v1 = parseInt(xLightLocationSlider.value,10);
     drawTriangles();
 });
 yLightLocationSlider.addEventListener("input", function() {
-    yLightLocation = parseInt(yLightLocationSlider.value,10);
+    lightLocation.v2 = parseInt(yLightLocationSlider.value,10);
     drawTriangles();
 });
 zLightLocationSlider.addEventListener("input", function() {
-    zLightLocation = parseInt(zLightLocationSlider.value,10);
+    lightLocation.v3 = parseInt(zLightLocationSlider.value,10);
     drawTriangles();
 });
 
@@ -153,22 +153,43 @@ var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var rgbTriangleColors = getColors(mesh);
 
-function drawTriangles() {
+var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
 
-    // getting Canvas
-    const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
-    if(!canvas) {
-        throw new Error("Cant find canvas");
+// animation;
+var animation: boolean = false;
+var rotationSpeed = 20;
+var then = 0;
+
+// ------------------------------------------------------------------------ Main Program -------------------------------------------------------------------------
+
+// getting Canvas
+const canvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
+if(!canvas) {
+    throw new Error("Cant find canvas");
+}
+
+// getting gl context
+const gl = canvas.getContext('webgl2');
+if(!gl) {
+    throw new Error("webGL not supported");
+}
+
+// creating a program
+const drawTriangleProgram = getProgram(gl,vertexShaderSourceCode,fragmentShaderSourceCode);
+    
+
+function drawTriangles(now: number = 0) {
+
+    if(animation) {
+        now *= 0.001;
+        var delta = now-then;
+        then = now;
+        lightLocation.rotate(deg2rad(rotationSpeed * delta),500,500);
     }
 
-    // getting gl context
-    const gl = canvas.getContext('webgl2');
     if(!gl) {
         throw new Error("webGL not supported");
     }
-
-    // creating a program
-    const drawTriangleProgram = getProgram(gl,vertexShaderSourceCode,fragmentShaderSourceCode);
     if(!drawTriangleProgram) {
         throw new Error("getProgramError");
     }
@@ -177,7 +198,6 @@ function drawTriangles() {
     const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
     const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
     const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals)
-
 
     // Attribute locations
     const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
@@ -201,18 +221,16 @@ function drawTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.enable(gl.DEPTH_TEST);
-    //gl.enable(gl.CULL_FACE);
     
-    // Rasterizer (which output pixels are covered by a triangle?)
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    // attatch all needed attributes
+    // Attatch all needed attributes
     gl.useProgram(drawTriangleProgram);
     gl.enableVertexAttribArray(vertexPositionAttributeLocation);
     gl.enableVertexAttribArray(vertexColorAttributeLocation);
     gl.enableVertexAttribArray(vertexNormalAttributeLocation);
 
-    // Input assembler (how to read vertex information from buffers?)
+    // How to read vertex information from buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
     gl.vertexAttribPointer(vertexPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
@@ -245,19 +263,19 @@ function drawTriangles() {
     // This matix first moves our obj <worldMatrix> then when it is set it moves it in front of the camera <viewMatix> and lastly clips it into space <projectionMatrix>
     var worldViewProjectionMatrix = M4.multiply(worldMatrix,viewProjectionMatrix);
 
-    // Those matrices are responsible for validating normal vectors when scaling thie obj, possibly not needed
-    //var worldInvMatix = worldMatrix.inverse();
-    //var worldInvTransMatrix = worldInvMatix.transpose();
-
     gl.uniformMatrix4fv(worldLocation, false, worldMatrix.convert());
     gl.uniformMatrix4fv(worldViewProjectionLocation, false, worldViewProjectionMatrix.convert());
     
-    gl.uniform3fv(lightPositionLocation,[xLightLocation,yLightLocation,zLightLocation]);
+    gl.uniform3fv(lightPositionLocation, lightLocation.getVec3ForBuffer());
     gl.uniform3fv(eyePositionLocation,cameraPosition.getVec3ForBuffer());
     gl.uniform1f(mirrorLocation,mirror)
     gl.uniform3fv(lightColorLocation,lightColorVector.getVec3ForBuffer());
 
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangles.length * 3);
+
+    if(animation) {
+        requestAnimationFrame(drawTriangles);
+    }
 }
 
 drawTriangles();

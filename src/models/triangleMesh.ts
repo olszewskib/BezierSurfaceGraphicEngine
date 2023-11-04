@@ -1,6 +1,6 @@
-import { Vec3 } from "./models/vec3";
-import { Vertex } from "./models/vertex";
-import { Triangle } from "./models/triangle";
+import { Vec3 } from "./vec3";
+import { Vertex } from "./vertex";
+import { Triangle } from "./triangle";
 import { BezierSurface } from "./BezierSurface";
 
 export class TriangleMesh {

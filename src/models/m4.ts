@@ -1,4 +1,4 @@
-import { Vec3 } from "./models/vec3";
+import { Vec3 } from "./vec3";
 
 export class M4 {
     readonly degree = 4;

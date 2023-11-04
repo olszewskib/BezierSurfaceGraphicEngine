@@ -1,4 +1,4 @@
-import type { Point3D } from "src/BezierSurface";
+import type { Point3D } from "src/models/BezierSurface";
 
 export class Vec3 {
     v1: number;
@@ -68,6 +68,17 @@ export class Vec3 {
         }
 
         return result;
+    }
+
+    rotate(rad: number, x: number, y:number) {
+
+        var s = Math.sin(rad);
+        var c = Math.cos(rad);
+        var tmpX = this.v1 - x;
+        var tmpY = this.v2 - y;
+
+        this.v1 = tmpX * c - tmpY * s + x;
+        this.v2 = tmpX * s + tmpY * c + y; 
     }
 
     add(v: Vec3): void {
