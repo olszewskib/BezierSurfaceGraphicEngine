@@ -10,6 +10,9 @@ in vec3 surfaceToEye;
 uniform float mirror;
 uniform vec3 lightColor;
 
+uniform float kd;
+uniform float ks;
+
 out vec4 outputColor;
 
 void main() {
@@ -28,6 +31,6 @@ void main() {
     }
 
     outputColor = vec4(fragmentColor, 1.0);
-    outputColor.rgb *= (light * lightColor);
-    outputColor.rgb += (reflect * lightColor);
+    outputColor.rgb *= (light * lightColor * kd);
+    outputColor.rgb += (reflect * lightColor * ks);
 }`;

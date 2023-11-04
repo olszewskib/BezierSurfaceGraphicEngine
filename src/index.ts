@@ -140,6 +140,30 @@ lightColorPicker.addEventListener("input", function() {
     drawTriangles();
 })
 
+var kdSlider = document.getElementById("Kd") as HTMLInputElement;
+if(kdSlider == null) {
+    throw new Error("kderror");   
+}
+
+var kd = parseFloat(kdSlider.value);
+
+kdSlider.addEventListener("input", function() {
+    kd = parseFloat(kdSlider.value);
+    drawTriangles();
+})
+
+
+var ksSlider = document.getElementById("Ks") as HTMLInputElement;
+if(ksSlider == null) {
+    throw new Error("kderror");   
+}
+
+var ks = parseFloat(ksSlider.value);
+
+ksSlider.addEventListener("input", function() {
+    ks = parseFloat(ksSlider.value);
+    drawTriangles();
+})
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
 
 // Bezier Surface 
@@ -212,6 +236,8 @@ function drawTriangles(now: number = 0) {
     const eyePositionLocation = gl.getUniformLocation(drawTriangleProgram, 'eyePosition');
     const mirrorLocation = gl.getUniformLocation(drawTriangleProgram, 'mirror');
     const lightColorLocation = gl.getUniformLocation(drawTriangleProgram, 'lightColor');
+    const kdLocation = gl.getUniformLocation(drawTriangleProgram, 'kd');
+    const ksLocation = gl.getUniformLocation(drawTriangleProgram, 'ks');
     // need an error check
 
     // Output merger (how to apply an updated pixel to the output image)
@@ -269,6 +295,8 @@ function drawTriangles(now: number = 0) {
     gl.uniform3fv(lightPositionLocation, lightLocation.getVec3ForBuffer());
     gl.uniform3fv(eyePositionLocation,cameraPosition.getVec3ForBuffer());
     gl.uniform1f(mirrorLocation,mirror)
+    gl.uniform1f(ksLocation,ks);
+    gl.uniform1f(kdLocation,kd);
     gl.uniform3fv(lightColorLocation,lightColorVector.getVec3ForBuffer());
 
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangles.length * 3);
