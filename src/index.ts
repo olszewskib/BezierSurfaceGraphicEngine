@@ -178,6 +178,8 @@ var animation: boolean = false;
 var rotationSpeed = 20;
 var then = 0;
 
+// texture
+var loadTexture = true;
 
 // ------------------------------------------------------------------------ Main Program -------------------------------------------------------------------------
 
@@ -271,20 +273,25 @@ function drawTriangles(now: number = 0) {
 
 
     // texture
-    var texture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE0 + 0);
-    gl.bindTexture(gl.TEXTURE_2D,texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+    if(loadTexture) {
+        var texture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + 0);
+        gl.bindTexture(gl.TEXTURE_2D,texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
 
-    // Asynchronously load an image
-    var image = new Image();
-    image.src = "./resources/textures/floor.png";
-    //image.addEventListener('load', function() {
-    // Now that the image has loaded make copy it to the texture.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    //});
+        // Asynchronously load an image
+        var image = document.getElementById("floor") as HTMLImageElement;
+        if(image == null) {
+            throw new Error("imageError");
+        }
+        //image.addEventListener('load', function() {
+        // Now that the image has loaded make copy it to the texture.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        //});
+        loadTexture = false;
+    }
 
 
     // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 
