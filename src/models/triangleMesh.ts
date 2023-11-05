@@ -112,15 +112,29 @@ export function getVertices(mesh: TriangleMesh): Float32Array {
     var vertices: number[] = new Array();
 
     mesh.triangles.forEach( triangle => {
-        if(!triangle.p1.normal || !triangle.p2.normal || !triangle.p3.normal) {
-            throw new Error("VertexNormalIsUndefined");
-        }
-
         var p1 = triangle.p1.getVec3ForBuffer();
         vertices.push(...p1)
         var p2 = triangle.p2.getVec3ForBuffer();
         vertices.push(...p2)
         var p3 = triangle.p3.getVec3ForBuffer();
+        vertices.push(...p3)
+    })
+
+    var cpuBuffer: Float32Array = new Float32Array(vertices);
+    return cpuBuffer;
+}
+
+export function getTexture(mesh: TriangleMesh): Float32Array {
+
+    var vertices: number[] = new Array();
+
+    mesh.triangles.forEach( triangle => {
+
+        var p1 = triangle.p1.getVec2ForBuffer();
+        vertices.push(...p1)
+        var p2 = triangle.p2.getVec2ForBuffer();
+        vertices.push(...p2)
+        var p3 = triangle.p3.getVec2ForBuffer();
         vertices.push(...p3)
     })
 

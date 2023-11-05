@@ -25,4 +25,8 @@ export class Vertex {
     getVec3ForBuffer(): number[] {
         return new Array(this.x,this.y,this.z);
     }
+
+    getVec2ForBuffer(): number[] {
+        return new Array(this.x,this.y);
+    }
 }

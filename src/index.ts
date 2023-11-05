@@ -4,7 +4,7 @@ import { vertexShaderSourceCode } from "./lib/vertexShader";
 import { M4 } from "./models/m4";
 import { deg2rad } from "./models/angles";
 import { Vec3 } from "./models/vec3";
-import { TriangleMesh, getColors, getNormals, getVertices } from "./models/triangleMesh";
+import { TriangleMesh, getColors, getNormals, getTexture, getVertices } from "./models/triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
@@ -169,6 +169,7 @@ const mesh = new TriangleMesh(precision,surface);
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var rgbTriangleColors = getColors(mesh);
+var textureCoords = getTexture(mesh);
 
 var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
 
@@ -176,6 +177,7 @@ var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation)
 var animation: boolean = false;
 var rotationSpeed = 20;
 var then = 0;
+
 
 // ------------------------------------------------------------------------ Main Program -------------------------------------------------------------------------
 
@@ -215,12 +217,16 @@ function drawTriangles(now: number = 0) {
     const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
     const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
     const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals)
+    const textureBuffer = createStaticVertexBuffer(gl, textureCoords);
 
     // Attribute locations
     const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
     const vertexColorAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexColor');
     const vertexNormalAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexNormal');
-    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
+    const vertexTextureAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'texPosition');
+    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0 || vertexTextureAttributeLocation < 0) {
+        throw new Error("attrErr");
+    };
 
     // Uniform locations
     const worldViewProjectionLocation = gl.getUniformLocation(drawTriangleProgram, 'worldViewProjection');
@@ -248,6 +254,7 @@ function drawTriangles(now: number = 0) {
     gl.enableVertexAttribArray(vertexPositionAttributeLocation);
     gl.enableVertexAttribArray(vertexColorAttributeLocation);
     gl.enableVertexAttribArray(vertexNormalAttributeLocation);
+    gl.enableVertexAttribArray(vertexTextureAttributeLocation);
 
     // How to read vertex information from buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
@@ -256,8 +263,28 @@ function drawTriangles(now: number = 0) {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
     gl.vertexAttribPointer(vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer)
+    gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer);
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+    gl.vertexAttribPointer(vertexTextureAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+    // texture
+    var texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + 0);
+    gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+    // Asynchronously load an image
+    var image = new Image();
+    image.src = "./resources/textures/floor.png";
+    //image.addEventListener('load', function() {
+    // Now that the image has loaded make copy it to the texture.
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    //});
 
 
     // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 

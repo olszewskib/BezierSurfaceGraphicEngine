@@ -7,6 +7,9 @@ in vec4 vertexPosition;
 in vec3 vertexNormal;
 in vec3 vertexColor;
 
+// textures
+in vec2 texPosition;
+
 // matrix for transformations
 uniform mat4 world;
 uniform mat4 worldViewProjection;
@@ -20,6 +23,8 @@ out vec3 fragmentNormal;
 
 out vec3 surfaceToLight;
 out vec3 surfaceToEye;
+
+out vec2 texCoord;
 
 void main() {
 
@@ -39,4 +44,7 @@ void main() {
 
     // color of the vertex
     fragmentColor = vertexColor;
+
+    // pass texture position to the fragment shadere
+    texCoord = texPosition;
 }`;

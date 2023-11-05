@@ -7,6 +7,10 @@ in vec3 fragmentNormal;
 in vec3 surfaceToLight;
 in vec3 surfaceToEye;
 
+// texture
+in vec2 texCoord;
+uniform sampler2D tex;
+
 uniform float mirror;
 uniform vec3 lightColor;
 
@@ -30,7 +34,8 @@ void main() {
         reflect = pow(dot(normal, halfVector), mirror);
     }
 
-    outputColor = vec4(fragmentColor, 1.0);
+    outputColor = texture(tex,texCoord);
+    //outputColor = vec4(fragmentColor, 1.0);
     outputColor.rgb *= (light * lightColor * kd);
     outputColor.rgb += (reflect * lightColor * ks);
 }`;
