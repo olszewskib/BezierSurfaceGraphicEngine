@@ -31,7 +31,6 @@ zSlider.addEventListener("input", function() {
     surface.setControlPointZValue(parseInt(xIndex.value,10),parseInt(yIndex.value,10),parseFloat(zSlider.value));
 
     var index = xIndex.value + yIndex.value;
-    console.log(index);
     const cell = document.getElementById(index);
     if(cell) {
         cell.textContent = zSlider.value;
