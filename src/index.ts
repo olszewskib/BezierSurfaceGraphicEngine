@@ -23,6 +23,7 @@ precisionSlider.addEventListener("input", function() {
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
     rgbTriangleColors = getColors(mesh);
+    textureCoords = getTexture(mesh);
     drawTriangles();
 });
 
