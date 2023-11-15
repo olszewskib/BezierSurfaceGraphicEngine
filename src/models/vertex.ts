@@ -6,6 +6,8 @@ export class Vertex {
     y: number;
     z: number;
     normal: Vec3 | undefined;
+    tangent: Vec3 | undefined;
+    biTangent: Vec3 | undefined;
     color: Vec4 | undefined;
 
     constructor(x: number, y:number, z:number) {
