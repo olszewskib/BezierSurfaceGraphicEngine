@@ -170,12 +170,8 @@ const mesh = new TriangleMesh(precision,surface);
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var triangleTangents = getTangents(mesh);
-//var triangleBiTangents = getBiTangents(mesh);
 var rgbTriangleColors = getColors(mesh);
 var textureCoords = getTexture(mesh);
-console.log(triangleNormals);
-console.log(triangleTangents);
-//console.log(triangleBiTangents);
 
 var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
 
@@ -273,16 +269,11 @@ function drawTriangles(now: number = 0) {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
     gl.vertexAttribPointer(vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
-    
-    //gl.bindBuffer(gl.ARRAY_BUFFER, bitangentsBuffer);
-    //gl.vertexAttribPointer(vertexBiTangentAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-    
     gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer);
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
     gl.vertexAttribPointer(vertexTextureAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-
 
     // texture
     if(loadTexture) {
@@ -340,14 +331,13 @@ function drawTriangles(now: number = 0) {
         loadTexture = false;
     }
 
-
     // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 
     var projectionMatrix = M4.perspective(deg2rad(120),canvas.clientWidth/canvas.clientHeight,1,2000);
 
     // This matrix positions the camera in the world 
     var cameraPosition: Vec3 = new Vec3(xCamera,yCamera,zCamera); // location of the camera in the space
     var targetPosition: Vec3 = new Vec3(xCameraDirection,yCameraDirection,zCameraDirection); // this dictates in which direction the camera is pointing
-    var upVector: Vec3 = new Vec3(0,1,0); // this set the "up" direction of the world;
+    var upVector: Vec3 = new Vec3(0,-1,0); // this set the "up" direction of the world;
     var cameraMatrix = M4.pointAt(cameraPosition, targetPosition, upVector);
     
     // This matrix is responsible for moving object in the world in front of the camera, it is the inversion

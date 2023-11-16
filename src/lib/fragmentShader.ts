@@ -25,8 +25,8 @@ void main() {
 
     //vec3 normal = normalize(fragmentNormal);
     vec3 normal = texture(normalTex,texCoord).rgb;
-    normal = (normal * 2.0 - 1.0);
-    normal = normalize(TBN * normal);
+    normal = normalize(normal * 2.0 - 1.0);
+    //normal = normalize(TBN * normal);
 
     // calculating the half vector in order to set the direction of light reflection
     vec3 s2l = normalize(surfaceToLight);

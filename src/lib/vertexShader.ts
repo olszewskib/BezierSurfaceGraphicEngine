@@ -40,9 +40,9 @@ void main() {
     // normal maps i know that i calculate normal vec twice...
     vec3 T = normalize(vec3(world * vec4(vertexTangent, 0.0)));
     vec3 N = normalize(vec3(world * vec4(vertexNormal, 0.0)));
-    T = normalize(T - dot(T,N) * N);
+    T = normalize(T - dot(N,T) * N);
     vec3 B = cross(N,T);
-    TBN = transpose(mat3(T,B,N));    
+    TBN = transpose(mat3(T,-B,N));    
 
     // we need to find surface postion
     vec3 surfacePosition = (world * vertexPosition).xyz;
