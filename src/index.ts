@@ -4,7 +4,7 @@ import { vertexShaderSourceCode } from "./lib/vertexShader";
 import { M4 } from "./models/m4";
 import { deg2rad } from "./models/angles";
 import { Vec3 } from "./models/vec3";
-import { TriangleMesh, getColors, getNormals, getTexture, getVertices } from "./models/triangleMesh";
+import { TriangleMesh, getBiTangents, getColors, getNormals, getTangents, getTexture, getVertices } from "./models/triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
@@ -169,14 +169,19 @@ const mesh = new TriangleMesh(precision,surface);
 
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
+var triangleTangents = getTangents(mesh);
+//var triangleBiTangents = getBiTangents(mesh);
 var rgbTriangleColors = getColors(mesh);
 var textureCoords = getTexture(mesh);
+console.log(triangleNormals);
+console.log(triangleTangents);
+//console.log(triangleBiTangents);
 
 var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
 
 // animation;
 var animation: boolean = false;
-var rotationSpeed = 20;
+var rotationSpeed = 100;
 var then = 0;
 
 // texture
@@ -220,14 +225,16 @@ function drawTriangles(now: number = 0) {
     const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
     const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
     const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals)
+    const tangentsBuffer = createStaticVertexBuffer(gl, triangleTangents)
     const textureBuffer = createStaticVertexBuffer(gl, textureCoords);
 
     // Attribute locations
     const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
     const vertexColorAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexColor');
     const vertexNormalAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexNormal');
+    const vertexTangentAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexTangent');
     const vertexTextureAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'texPosition');
-    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0 || vertexTextureAttributeLocation < 0) {
+    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0 || vertexTextureAttributeLocation < 0 || vertexTangentAttributeLocation < 0) {
         throw new Error("attrErr");
     };
 
@@ -266,6 +273,10 @@ function drawTriangles(now: number = 0) {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
     gl.vertexAttribPointer(vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
+    
+    //gl.bindBuffer(gl.ARRAY_BUFFER, bitangentsBuffer);
+    //gl.vertexAttribPointer(vertexBiTangentAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    
     gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer);
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
@@ -275,18 +286,57 @@ function drawTriangles(now: number = 0) {
 
     // texture
     if(loadTexture) {
+
+        gl.enableVertexAttribArray(vertexTangentAttributeLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, tangentsBuffer);
+        gl.vertexAttribPointer(vertexTangentAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+        // loading texture
         var texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0 + 0);
         gl.bindTexture(gl.TEXTURE_2D,texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
 
-        var image = document.getElementById("floor") as HTMLImageElement;
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        var image = document.getElementById("pipes") as HTMLImageElement;
         if(image == null) {
             throw new Error("imageError");
         }
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
+
+        // loading normal map
+        var normalTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D,normalTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        var image = document.getElementById("pipesNormal") as HTMLImageElement;
+        if(image == null) {
+            throw new Error("imageError");
+        }
+        gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        // binding textures
+        var texLocation = gl.getUniformLocation(drawTriangleProgram,'tex');
+        var normaltexLocation = gl.getUniformLocation(drawTriangleProgram,'normalTex');
+
+        gl.uniform1i(texLocation, 0);
+        gl.uniform1i(normaltexLocation, 1);
+
+        gl.activeTexture(gl.TEXTURE0 + 0.0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.activeTexture(gl.TEXTURE1 + 0.0);
+        gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+
         loadTexture = false;
     }
 
