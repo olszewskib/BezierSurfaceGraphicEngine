@@ -1,8 +1,8 @@
 #mainCanvas {
   display: block;
-  margin: 2rem auto;
-  width: 1000;
-  height: 1000;
+  margin: auto;
+  width: 800;
+  height: 800;
   background-color: aliceblue;
 }
 
@@ -23,7 +23,12 @@
   align-items: center;
 }
 
+ul {
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+
 h2 {
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }

@@ -337,7 +337,7 @@ function drawTriangles(now: number = 0) {
     // This matrix positions the camera in the world 
     var cameraPosition: Vec3 = new Vec3(xCamera,yCamera,zCamera); // location of the camera in the space
     var targetPosition: Vec3 = new Vec3(xCameraDirection,yCameraDirection,zCameraDirection); // this dictates in which direction the camera is pointing
-    var upVector: Vec3 = new Vec3(0,-1,0); // this set the "up" direction of the world;
+    var upVector: Vec3 = new Vec3(0,1,0); // this set the "up" direction of the world;
     var cameraMatrix = M4.pointAt(cameraPosition, targetPosition, upVector);
     
     // This matrix is responsible for moving object in the world in front of the camera, it is the inversion
