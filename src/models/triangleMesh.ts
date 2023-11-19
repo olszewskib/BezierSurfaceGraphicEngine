@@ -3,21 +3,11 @@ import { Vertex } from "./vertex";
 import { Triangle } from "./triangle";
 import { BezierSurface } from "./BezierSurface";
 
-export type MeshData = {
-    vertices: Float32Array;
-    normals: Float32Array;
-    texture: Float32Array;
-    tangents: Float32Array;
-    bitangents: Float32Array;
-    colors: Uint8Array;
-}
-
 export class TriangleMesh {
     size: number;
     precision: number;
     triangles: Triangle[];
     surface: BezierSurface;
-    meshData: MeshData;
 
     constructor(precision: number, surface: BezierSurface ) {
         this.size = 1;
@@ -25,14 +15,6 @@ export class TriangleMesh {
         this.triangles = [];
         this.surface = surface;
         this.construct(this.precision);
-        this.meshData = {
-            vertices: new Float32Array,
-            normals: new Float32Array,
-            texture: new Float32Array,
-            tangents: new Float32Array,
-            bitangents: new Float32Array,
-            colors: new Uint8Array
-        }
     }
 
 

@@ -23,7 +23,7 @@ precisionSlider.addEventListener("input", function() {
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
     triangleTangents = getTangents(mesh);
-    rgbTriangleColors = getColors(mesh);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
     textureCoords = getTexture(mesh);
     drawTriangles(0,true);
 });
@@ -45,7 +45,7 @@ zSlider.addEventListener("input", function() {
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
     triangleTangents = getTangents(mesh);
-    rgbTriangleColors = getColors(mesh);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
     drawTriangles(0,true)
     
 })
@@ -158,7 +158,7 @@ if(lightColorPicker == null || meshColorPicker == null) {
 }
 
 var lightColorVector: Vec3 = Vec3.convertFromHEX(lightColorPicker.value,true);
-var meshColorVector: Vec3 = Vec3.convertFromHEX(meshColorPicker.value,true);
+var meshColorVector: Vec3 = Vec3.convertFromHEX(meshColorPicker.value);
 
 lightColorPicker.addEventListener("input", function() {
     lightColorVector = Vec3.convertFromHEX(lightColorPicker.value,true);
@@ -259,7 +259,7 @@ const mesh = new TriangleMesh(precision,surface);
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
 var triangleTangents = getTangents(mesh);
-var rgbTriangleColors = getColors(mesh);
+var rgbTriangleColors = getColors(mesh,meshColorVector);
 var textureCoords = getTexture(mesh);
 
 var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
