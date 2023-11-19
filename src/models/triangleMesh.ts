@@ -159,14 +159,21 @@ export function getBiTangents(mesh: TriangleMesh): Float32Array {
     var cpuBuffer: Float32Array = new Float32Array(bitangents);
     return cpuBuffer;
 }
-export function getColors(mesh: TriangleMesh): Uint8Array {
+export function getColors(mesh: TriangleMesh, color?: Vec3): Uint8Array {
     
     var colors: number[] = new Array();
     for(let i:number = 0; i<mesh.triangles.length; i++) {
 
-        colors.push(255,0,0);
-        colors.push(0,255,0);
-        colors.push(0,0,255);
+        if(typeof color == 'undefined') {
+            colors.push(255,0,0);
+            colors.push(0,255,0);
+            colors.push(0,0,255);
+        } else {
+            colors.push(...color.getVec3ForBuffer());
+            colors.push(...color.getVec3ForBuffer());
+            colors.push(...color.getVec3ForBuffer());
+        }
+
     }
 
     var cpuBuffer: Uint8Array = new Uint8Array(colors);
