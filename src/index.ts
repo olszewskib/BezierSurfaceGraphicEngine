@@ -4,7 +4,7 @@ import { vertexShaderSourceCode } from "./lib/vertexShader";
 import { M4 } from "./models/m4";
 import { deg2rad } from "./models/angles";
 import { Vec3 } from "./models/vec3";
-import { TriangleMesh, getColors, getNormals, getVertices } from "./models/triangleMesh";
+import { TriangleMesh, getBiTangents, getColors, getNormals, getTangents, getTexture, getVertices } from "./models/triangleMesh";
 import { createStaticVertexBuffer, getProgram } from "./webGL";
 
 
@@ -22,8 +22,10 @@ precisionSlider.addEventListener("input", function() {
     mesh.construct(precision);
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
-    rgbTriangleColors = getColors(mesh);
-    drawTriangles();
+    triangleTangents = getTangents(mesh);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
+    textureCoords = getTexture(mesh);
+    drawTriangles(0,true);
 });
 
 zSlider.addEventListener("input", function() {
@@ -33,13 +35,18 @@ zSlider.addEventListener("input", function() {
     var index = xIndex.value + yIndex.value;
     const cell = document.getElementById(index);
     if(cell) {
-        cell.textContent = zSlider.value;
+        if(zSlider.value == "0") {
+            cell.textContent = "0.0";
+        } else {
+            cell.textContent = zSlider.value;
+        }
     }
     mesh.construct(precision);
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
-    rgbTriangleColors = getColors(mesh);
-    drawTriangles()
+    triangleTangents = getTangents(mesh);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
+    drawTriangles(0,true)
     
 })
 
@@ -57,15 +64,15 @@ var zCamera: number = parseInt(zCameraSlider.value,10);
 
 xCameraSlider.addEventListener("input", function() {
     xCamera = parseInt(xCameraSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 yCameraSlider.addEventListener("input", function() {
     yCamera = parseInt(yCameraSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 zCameraSlider.addEventListener("input", function() {
     zCamera = parseInt(zCameraSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 
 //Camera direction UI
@@ -82,15 +89,15 @@ var zCameraDirection: number = parseInt(zCameraDirectionSlider.value,10);
 
 xCameraDirectionSlider.addEventListener("input", function() {
     xCameraDirection = parseInt(xCameraDirectionSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 yCameraDirectionSlider.addEventListener("input", function() {
     yCameraDirection = parseInt(yCameraDirectionSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 zCameraDirectionSlider.addEventListener("input", function() {
     zCameraDirection = parseInt(zCameraDirectionSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 
 // Light location UI
@@ -107,15 +114,15 @@ var zLightLocation: number = parseInt(zLightLocationSlider.value,10);
 
 xLightLocationSlider.addEventListener("input", function() {
     lightLocation.v1 = parseInt(xLightLocationSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 yLightLocationSlider.addEventListener("input", function() {
     lightLocation.v2 = parseInt(yLightLocationSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 zLightLocationSlider.addEventListener("input", function() {
     lightLocation.v3 = parseInt(zLightLocationSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 });
 
 // Mods UI
@@ -132,28 +139,112 @@ var mirror: number = parseInt(mirrorSlider.value,10);
 
 kdSlider.addEventListener("input", function() {
     kd = parseFloat(kdSlider.value);
-    drawTriangles();
+    drawTriangles(0,true);
 })
 ksSlider.addEventListener("input", function() {
     ks = parseFloat(ksSlider.value);
-    drawTriangles();
+    drawTriangles(0,true);
 })
 mirrorSlider.addEventListener("input", function() {
     mirror = parseInt(mirrorSlider.value,10);
-    drawTriangles();
+    drawTriangles(0,true);
 })
 
 // Colors UI
 const lightColorPicker = document.getElementById("lightColor") as HTMLInputElement;
-if(lightColorPicker == null) {
-    throw new Error("lightcolorpicker");
+const meshColorPicker = document.getElementById("meshColor") as HTMLInputElement;
+if(lightColorPicker == null || meshColorPicker == null) {
+    throw new Error("colorpicker");
 }
 
 var lightColorVector: Vec3 = Vec3.convertFromHEX(lightColorPicker.value,true);
+var meshColorVector: Vec3 = Vec3.convertFromHEX(meshColorPicker.value);
 
 lightColorPicker.addEventListener("input", function() {
     lightColorVector = Vec3.convertFromHEX(lightColorPicker.value,true);
+    drawTriangles(0,true);
+})
+
+meshColorPicker.addEventListener("input", function() {
+    meshColorVector = Vec3.convertFromHEX(meshColorPicker.value);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
+    isTexture = 0.0;
+    drawTriangles(0,true);
+})
+
+// Textures UI
+var applyTextureCheckBox = document.getElementById("applyTextureCheckBox") as HTMLInputElement;
+var applyNormalMapCheckBox = document.getElementById("applyNormalMapCheckBox") as HTMLInputElement;
+if(applyNormalMapCheckBox == null || applyTextureCheckBox == null) {
+    throw new Error("applyCheckBoxes");
+}
+
+applyTextureCheckBox.addEventListener("input", function() {
+    if(applyTextureCheckBox.checked) {
+        isTexture = 1.0;
+    } else {
+        isTexture = 0.0;
+    }
+    drawTriangles(0,true);
+})
+
+applyNormalMapCheckBox.addEventListener("input", function() {
+    if(applyNormalMapCheckBox.checked) {
+        isNormalMap = 1.0;
+    } else {
+        isNormalMap = 0.0;
+    }
+    drawTriangles(0,true);
+})
+
+var floorTextureButton = document.getElementById("floorTextureButton") as HTMLButtonElement;
+var pipesTextureButton = document.getElementById("pipesTextureButton") as HTMLButtonElement;
+var floorNormalButton = document.getElementById("floorNormalButton") as HTMLButtonElement;
+var pipesNormalButton = document.getElementById("pipesNormalButton") as HTMLButtonElement;
+if(floorTextureButton == null || pipesTextureButton == null || floorNormalButton == null || pipesNormalButton == null) {
+    throw new Error("texturesError");
+}
+
+floorTextureButton.addEventListener("click", function() {
+    textureID = "floor";
+    loadTexture = true;
+    drawTriangles(0,true);
+})
+
+pipesTextureButton.addEventListener("click", function() {
+    textureID = "pipes";
+    loadTexture = true;
+    drawTriangles(0,true);
+})
+
+floorNormalButton.addEventListener("click", function() {
+    normalMapID = "floorNormal";
+    loadTexture = true;
+    drawTriangles(0,true);
+})
+
+pipesNormalButton.addEventListener("click", function() {
+    normalMapID = "pipesNormal";
+    loadTexture = true;
+    drawTriangles(0,true);
+})
+
+// animation ui
+var startAnimationButton = document.getElementById("startAnimation") as HTMLButtonElement;
+var stopAnimationButton = document.getElementById("stopAnimation") as HTMLButtonElement;
+if(startAnimationButton == null || stopAnimationButton == null) {
+    throw new Error("animationError");
+}
+
+startAnimationButton.addEventListener("click", function() {
+    animation = true;
     drawTriangles();
+
+})
+
+stopAnimationButton.addEventListener("click", function() {
+    animation = false;
+    cancelAnimationFrame(animationID);
 })
 
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
@@ -162,19 +253,31 @@ lightColorPicker.addEventListener("input", function() {
 const surface = new BezierSurface();
 
 // Triangle Mesh
-var precision: number = 10;
+var precision: number = 60;
 const mesh = new TriangleMesh(precision,surface);
 
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);
-var rgbTriangleColors = getColors(mesh);
+var triangleTangents = getTangents(mesh);
+var rgbTriangleColors = getColors(mesh,meshColorVector);
+var textureCoords = getTexture(mesh);
 
 var lightLocation: Vec3 = new Vec3(xLightLocation,yLightLocation,zLightLocation);
 
 // animation;
 var animation: boolean = false;
-var rotationSpeed = 20;
+var rotationSpeed = 100;
 var then = 0;
+var animationID: number;
+
+// texture
+var loadTexture = true;
+var textureID: string = "pipes";
+var normalMapID: string = "pipesNormal";
+
+// flags
+var isTexture = 1.0;
+var isNormalMap = 1.0;
 
 // ------------------------------------------------------------------------ Main Program -------------------------------------------------------------------------
 
@@ -193,10 +296,33 @@ if(!gl) {
 // creating a program
 const drawTriangleProgram = getProgram(gl,vertexShaderSourceCode,fragmentShaderSourceCode);
     
+if(!drawTriangleProgram) {
+    throw new Error("getProgramError");
+}
 
-function drawTriangles(now: number = 0) {
+// Attribute locations
+const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
+const vertexColorAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexColor');
+const vertexNormalAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexNormal');
+const vertexTangentAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexTangent');
+const vertexTextureAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'texPosition');
 
-    if(animation) {
+// Uniform locations
+const worldViewProjectionLocation = gl.getUniformLocation(drawTriangleProgram, 'worldViewProjection');
+const worldLocation = gl.getUniformLocation(drawTriangleProgram, 'world');
+const lightPositionLocation = gl.getUniformLocation(drawTriangleProgram, 'lightPosition');
+const eyePositionLocation = gl.getUniformLocation(drawTriangleProgram, 'eyePosition');
+const mirrorLocation = gl.getUniformLocation(drawTriangleProgram, 'mirror');
+const lightColorLocation = gl.getUniformLocation(drawTriangleProgram, 'lightColor');
+const kdLocation = gl.getUniformLocation(drawTriangleProgram, 'kd');
+const ksLocation = gl.getUniformLocation(drawTriangleProgram, 'ks');
+const isNormalMapFSLocation = gl.getUniformLocation(drawTriangleProgram, 'isNormalMapFS');
+const isNormalMapVSLocation = gl.getUniformLocation(drawTriangleProgram, 'isNormalMapVS');
+const isTextureLocation = gl.getUniformLocation(drawTriangleProgram, 'isTexture');
+
+function drawTriangles(now: number = 0, skip: boolean = false) {
+
+    if(animation && !skip) {
         now *= 0.001;
         var delta = now-then;
         then = now;
@@ -211,26 +337,11 @@ function drawTriangles(now: number = 0) {
     }
     
     // loading data to vertex buffers
-    const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices);
-    const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors);
-    const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals)
-
-    // Attribute locations
-    const vertexPositionAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexPosition');
-    const vertexColorAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexColor');
-    const vertexNormalAttributeLocation = gl.getAttribLocation(drawTriangleProgram, 'vertexNormal');
-    if (vertexPositionAttributeLocation < 0 || vertexColorAttributeLocation < 0 || vertexNormalAttributeLocation < 0) return;
-
-    // Uniform locations
-    const worldViewProjectionLocation = gl.getUniformLocation(drawTriangleProgram, 'worldViewProjection');
-    const worldLocation = gl.getUniformLocation(drawTriangleProgram, 'world');
-    const lightPositionLocation = gl.getUniformLocation(drawTriangleProgram, 'lightPosition');
-    const eyePositionLocation = gl.getUniformLocation(drawTriangleProgram, 'eyePosition');
-    const mirrorLocation = gl.getUniformLocation(drawTriangleProgram, 'mirror');
-    const lightColorLocation = gl.getUniformLocation(drawTriangleProgram, 'lightColor');
-    const kdLocation = gl.getUniformLocation(drawTriangleProgram, 'kd');
-    const ksLocation = gl.getUniformLocation(drawTriangleProgram, 'ks');
-    // need an error check
+    const triangleBuffer = createStaticVertexBuffer(gl, triangleVertices); // only on precision change
+    const rgbTriabgleBuffer = createStaticVertexBuffer(gl, rgbTriangleColors); // on color change
+    const normalsBuffer = createStaticVertexBuffer(gl, triangleNormals); // on precision change
+    const tangentsBuffer = createStaticVertexBuffer(gl, triangleTangents); // on precision change
+    const textureBuffer = createStaticVertexBuffer(gl, textureCoords);
 
     // Output merger (how to apply an updated pixel to the output image)
     canvas.width = canvas.clientWidth;
@@ -247,6 +358,7 @@ function drawTriangles(now: number = 0) {
     gl.enableVertexAttribArray(vertexPositionAttributeLocation);
     gl.enableVertexAttribArray(vertexColorAttributeLocation);
     gl.enableVertexAttribArray(vertexNormalAttributeLocation);
+    gl.enableVertexAttribArray(vertexTextureAttributeLocation);
 
     // How to read vertex information from buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
@@ -255,9 +367,67 @@ function drawTriangles(now: number = 0) {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
     gl.vertexAttribPointer(vertexNormalAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     
-    gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer)
+    gl.bindBuffer(gl.ARRAY_BUFFER, rgbTriabgleBuffer);
     gl.vertexAttribPointer(vertexColorAttributeLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+    gl.vertexAttribPointer(vertexTextureAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    // texture
+    if(loadTexture) {
+
+        gl.enableVertexAttribArray(vertexTangentAttributeLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, tangentsBuffer);
+        gl.vertexAttribPointer(vertexTangentAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+        // loading texture
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D,texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        var image = document.getElementById(textureID) as HTMLImageElement;
+        if(image == null) {
+            throw new Error("imageError");
+        }
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        // loading normal map
+        var normalTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D,normalTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        var image = document.getElementById(normalMapID) as HTMLImageElement;
+        if(image == null) {
+            throw new Error("imageError");
+        }
+        gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        // binding textures
+        var texLocation = gl.getUniformLocation(drawTriangleProgram,'tex');
+        var normaltexLocation = gl.getUniformLocation(drawTriangleProgram,'normalTex');
+
+        gl.uniform1i(texLocation, 0);
+        gl.uniform1i(normaltexLocation, 1);
+
+        gl.activeTexture(gl.TEXTURE0 + 0.0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.activeTexture(gl.TEXTURE1 + 0.0);
+        gl.bindTexture(gl.TEXTURE_2D, normalTexture);
+
+        loadTexture = false;
+    }
 
     // This matrix converts a frustum of space into a clip space, so basicly it which part of space we can see 
     var projectionMatrix = M4.perspective(deg2rad(120),canvas.clientWidth/canvas.clientHeight,1,2000);
@@ -286,16 +456,21 @@ function drawTriangles(now: number = 0) {
     
     gl.uniform3fv(lightPositionLocation, lightLocation.getVec3ForBuffer());
     gl.uniform3fv(eyePositionLocation,cameraPosition.getVec3ForBuffer());
+    gl.uniform3fv(lightColorLocation,lightColorVector.getVec3ForBuffer());
     gl.uniform1f(mirrorLocation,mirror)
     gl.uniform1f(ksLocation,ks);
     gl.uniform1f(kdLocation,kd);
-    gl.uniform3fv(lightColorLocation,lightColorVector.getVec3ForBuffer());
+    
+    // flags
+    gl.uniform1f(isNormalMapFSLocation,isNormalMap);
+    gl.uniform1f(isNormalMapVSLocation,isNormalMap);
+    gl.uniform1f(isTextureLocation,isTexture);
 
     gl.drawArrays(gl.TRIANGLES, 0, mesh.triangles.length * 3);
 
-    if(animation) {
-        requestAnimationFrame(drawTriangles);
+    if(animation && !skip) {
+        animationID = requestAnimationFrame(drawTriangles);
     }
 }
 
-drawTriangles();
+drawTriangles(0,true);
