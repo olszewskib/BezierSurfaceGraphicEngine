@@ -19,7 +19,7 @@ if(precisionSlider == null || zSlider == null)
 
 precisionSlider.addEventListener("input", function() {
     precision = parseInt(precisionSlider.value,10);
-    mesh.construct(precision);
+    mesh.construct(precision,isSphere);
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
     triangleTangents = getTangents(mesh);
@@ -41,7 +41,7 @@ zSlider.addEventListener("input", function() {
             cell.textContent = zSlider.value;
         }
     }
-    mesh.construct(precision);
+    mesh.construct(precision,isSphere);
     triangleVertices = getVertices(mesh);
     triangleNormals = getNormals(mesh);
     triangleTangents = getTangents(mesh);
@@ -247,14 +247,38 @@ stopAnimationButton.addEventListener("click", function() {
     cancelAnimationFrame(animationID);
 })
 
+// sphere ui
+var sphereCheckBox = document.getElementById("sphereCheckBox") as HTMLInputElement;
+if(sphereCheckBox == null) {
+    throw new Error("sphererCheckBox");
+}
+
+sphereCheckBox.addEventListener("input", function() {
+    if(sphereCheckBox.checked) {
+        isSphere = true;
+    } else {
+        isSphere = false;
+    }
+    mesh.construct(precision,isSphere);
+    triangleVertices = getVertices(mesh);
+    triangleNormals = getNormals(mesh);
+    triangleTangents = getTangents(mesh);
+    rgbTriangleColors = getColors(mesh,meshColorVector);
+    textureCoords = getTexture(mesh);
+    drawTriangles(0,true);
+})
+
 // ------------------------------------------------------------------------- Code Below ------------------------------------------------------------------------
+
+// Sphere
+var isSphere = true;
 
 // Bezier Surface 
 const surface = new BezierSurface();
 
 // Triangle Mesh
 var precision: number = 60;
-const mesh = new TriangleMesh(precision,surface);
+const mesh = new TriangleMesh(precision,surface,isSphere);
 
 var triangleVertices = getVertices(mesh);
 var triangleNormals = getNormals(mesh);

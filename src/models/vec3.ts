@@ -1,4 +1,5 @@
 import type { Point3D } from "src/models/BezierSurface";
+import { Vertex } from "./vertex";
 
 export class Vec3 {
     v1: number;
@@ -17,6 +18,10 @@ export class Vec3 {
         var z: number = v.v1 * u.v2 - v.v2 * u.v1;
 
         return new Vec3(x,y,z);
+    }
+
+    static getSphereNormal(v: Vertex, r: number) {
+        return new Vec3(v.x-r,v.y-r,v.z);
     }
 
     static subtractVectors(v: Vec3, u: Vec3): Vec3 {

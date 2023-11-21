@@ -58,6 +58,16 @@ export class BezierSurface {
         return result;
     }
 
+    S(u: number, v: number): number {
+        var radius: number = 0.5;
+        var xMiddle: number = 0.5;
+        var yMiddle: number = 0.5;
+
+        if( Math.sqrt( (xMiddle-u) * (xMiddle-u) + (yMiddle-v) * (yMiddle-v)) >= 0.5 ) return 0;
+
+        return Math.sqrt(radius * radius - (u - xMiddle) * (u - xMiddle) - (v - yMiddle) * (v - yMiddle));
+    }
+
     static bezierCurve(points: Vec3[], t: number): Vec3 {
         var result:Vec3 = new Vec3();
         for(let i:number = 0; i<4; i++) {
