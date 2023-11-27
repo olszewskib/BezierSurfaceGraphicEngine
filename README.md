@@ -20,7 +20,15 @@ Normal mapping is employed to simulate surface details and enhance the perceptio
 
 The engine incorporates lighting effects to simulate realistic illumination of scenes. Different lighting models, such as ambient, diffuse, and specular lighting, contribute to creating visually stunning and dynamic environments.
 
+### Animation
+
+Simple animation of light moving above the surface
+
 ## Preview
+![BezierSurface Graphic Engine](https://github.com/olszewskib/triangle_filler/blob/master/screenshots/sc1.png)
+![BezierSurface Graphic Engine](https://github.com/olszewskib/triangle_filler/blob/master/screenshots/sc2.png)
+![BezierSurface Graphic Engine](https://github.com/olszewskib/triangle_filler/blob/master/screenshots/sc3.png)
+
 
 ## Available Scripts
 
