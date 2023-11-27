@@ -20,10 +20,7 @@ Normal mapping is employed to simulate surface details and enhance the perceptio
 
 The engine incorporates lighting effects to simulate realistic illumination of scenes. Different lighting models, such as ambient, diffuse, and specular lighting, contribute to creating visually stunning and dynamic environments.
 
-
-# New Project
-
-> ✨ Bootstrapped with Create Snowpack App (CSA).
+## Preview
 
 ## Available Scripts
 
@@ -41,7 +38,3 @@ Builds a static copy of your site to the `build/` folder.
 Your app is ready to be deployed!
 
 **For the best production performance:** Add a build bundler plugin like [@snowpack/plugin-webpack](https://github.com/snowpackjs/snowpack/tree/main/plugins/plugin-webpack) or [snowpack-plugin-rollup-bundle](https://github.com/ParamagicDev/snowpack-plugin-rollup-bundle) to your `snowpack.config.mjs` config file.
-
-### Q: What about Eject?
-
-No eject needed! Snowpack guarantees zero lock-in, and CSA strives for the same.
